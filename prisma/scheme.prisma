@@ -1,0 +1,38 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Pago {
+  id            String      @id @default(uuid())
+  ordenId       String
+  userId        String      // clerk sub
+  monto         Float
+  estado        EstadoPago  @default(PENDIENTE)
+  preferenceId  String?     // ID que devuelve MP
+  transaccion   Transaccion?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+
+  @@map("pagos")
+}
+
+model Transaccion {
+  id       String   @id @default(uuid())
+  pagoId   String   @unique
+  pago     Pago     @relation(fields: [pagoId], references: [id])
+  metodo   String
+  fecha    DateTime @default(now())
+
+  @@map("transacciones")
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}

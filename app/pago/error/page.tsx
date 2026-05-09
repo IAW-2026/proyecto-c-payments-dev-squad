@@ -1,0 +1,1 @@
+// Buyer llega acá si falla el pago o si elige cancelar en MP

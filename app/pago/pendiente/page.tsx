@@ -1,0 +1,1 @@
+// Redirige a exitoso o error según el resultado del pago
