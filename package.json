@@ -1,11 +1,16 @@
 {
+  "name": "proyecto-c-payments-dev-squad",
+  "version": "1.0.0",
+  "private": true,
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "start": "next start"
+    "start": "next start",
+    "lint": "next lint"
   },
   "dependencies": {
     "@clerk/nextjs": "^7.3.3",
+    "@prisma/adapter-neon": "^7.8.0",
     "@prisma/client": "^7.8.0",
     "mercadopago": "^2.12.0",
     "next": "^16.2.6",
