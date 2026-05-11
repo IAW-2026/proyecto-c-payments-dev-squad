@@ -1,146 +1,223 @@
 ﻿'use client'
 import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
+import { useState } from 'react'
 
 export default function Home() {
   const { isSignedIn } = useUser()
+  const [selectedPayment, setSelectedPayment] = useState<string | null>('mercadopago')
+
+  const paymentMethods = [
+    {
+      id: 'mercadopago',
+      icon: '💳',
+      title: 'Mercado Pago',
+      subtitle: 'Saldo, tarjeta o cuotas',
+    },
+    {
+      id: 'credit',
+      icon: '🏦',
+      title: 'Tarjeta de crédito',
+      subtitle: 'Visa, Mastercard, Amex',
+    },
+    {
+      id: 'transfer',
+      icon: '🏛️',
+      title: 'Transferencia bancaria',
+      subtitle: 'Acreditación en 1-2 días',
+    },
+  ]
 
   return (
-    <main className="payment-page bg-black text-white min-h-screen py-10">
-      <div className="page-container mx-auto max-w-6xl px-6">
+    <main className="min-h-screen py-8 px-4" style={{ backgroundColor: 'var(--color-background)', color: 'var(--color-foreground)' }}>
+      <div className="mx-auto max-w-5xl">
 
-        <nav className="flex items-center justify-between mb-8 rounded-[20px] bg-gray-900 px-6 py-4 shadow-sm border border-gray-800">
-          <span className="text-xl font-black text-white">
-            ZapasYa <span className="text-gray-400 font-normal text-sm">· Payments</span>
+        {/* Nav */}
+        <nav
+          className="flex items-center justify-between mb-8 rounded-2xl px-6 py-4 border"
+          style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+        >
+          <span className="text-lg font-black" style={{ color: 'var(--color-foreground)' }}>
+            ZapasYa <span className="font-normal text-sm" style={{ color: 'var(--color-muted)' }}>· Payments</span>
           </span>
           {isSignedIn ? (
             <UserButton />
           ) : (
             <SignInButton>
-              <button className="btn-primary rounded-full px-5 py-2 text-sm font-semibold bg-blue-600 text-white hover:bg-blue-700">
-                Iniciar sesión
+              <button className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold border btn-secondary" style={{ borderColor: 'var(--color-border)' }}>
+                <span>👤</span> Iniciar sesión
               </button>
             </SignInButton>
           )}
         </nav>
-        {/*CLERK*/}
-        <section className="hero grid gap-8 rounded-[26px] bg-gray-900 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.5)] md:grid-cols-[1.2fr_0.8fr] lg:p-12 border border-gray-800">
-          <div className="hero-copy flex flex-col justify-center gap-6">
-            <span className="hero-badge inline-flex rounded-full px-4 py-2 text-sm font-semibold uppercase tracking-[0.18em] bg-yellow-400 text-black">
-              Compra segura
-            </span>
-            <h1 className="text-4xl font-black leading-tight text-white sm:text-5xl">
-              Paga tus zapatillas favoritas con estilo Mercado Libre
-            </h1>
-            <p className="max-w-2xl text-lg text-gray-300">
-              Selecciona tu producto, revisa tu carrito y confirma el pago rápido con cuotas y envío exprés. Todo pensado para una experiencia clara, segura y moderna.
-            </p>
-            <div className="hero-actions flex flex-wrap gap-3">
-              <a href="/pago/pendiente" className="btn-primary rounded-full px-7 py-3 text-base font-semibold shadow-[0_10px_30px_rgba(52,131,250,0.24)] bg-blue-600 text-white hover:bg-blue-700">
-                Pagar ahora
-              </a>
-              <a href="#resumen" className="btn-secondary rounded-full px-7 py-3 text-base font-semibold bg-gray-800 text-white border border-gray-600 hover:bg-gray-700">
-                Ver resumen
-              </a>
-            </div>
-            <div className="quick-info grid gap-3 sm:grid-cols-3">
-              <div className="info-card rounded-3xl border border-gray-700 bg-gray-800 p-4 text-sm text-gray-300">
-                Envío gratis en 24h
-              </div>
-              <div className="info-card rounded-3xl border border-gray-700 bg-gray-800 p-4 text-sm text-gray-300">
-                12 cuotas sin interés
-              </div>
-              <div className="info-card rounded-3xl border border-gray-700 bg-gray-800 p-4 text-sm text-gray-300">
-                Compra protegida
-              </div>
-            </div>
-          </div>
 
-          <article className="product-card rounded-[28px] bg-gray-800 p-6 sm:p-8 border border-gray-700">
-            <div className="product-badge mb-5 inline-flex items-center gap-2 rounded-full bg-blue-100 px-3 py-2 text-sm font-semibold text-blue-900">
-              <span className="h-2 w-2 rounded-full bg-blue-600" /> Zapatillas Running
-            </div>
-            <div className="product-grid grid gap-4 sm:grid-cols-[auto_1fr] sm:items-center">
-              <div className="product-image overflow-hidden rounded-3xl bg-gray-700 p-3 shadow-sm">
-                <img src="https://images.unsplash.com/photo-1600185360814-bae279f266f7?auto=format&fit=crop&w=600&q=80" alt="Zapatillas deportivas" className="h-44 w-full object-cover rounded-2xl" />
-              </div>
-              <div className="product-details">
-                <p className="text-sm uppercase tracking-[0.18em] text-gray-400">Edición limitada</p>
-                <h2 className="mt-3 text-2xl font-bold text-white">Zapatillas UltraSprint</h2>
-                <p className="mt-3 text-sm leading-6 text-gray-300">
-                  Comodidad premium para correr y para el día a día. Suela liviana y diseño urbano inspirado en las mejores marcas.
-                </p>
-                <div className="mt-6 flex flex-wrap items-center gap-3">
-                  <span className="price text-3xl font-black text-white">$ 18.999</span>
-                  <span className="tag rounded-full bg-blue-100 px-3 py-1 text-xs font-semibold text-blue-900">
-                    12x $1.583 sin interés
-                  </span>
+        {/* Badge + Title */}
+        <div className="mb-6">
+          <span
+            className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest mb-4"
+            style={{ backgroundColor: 'var(--color-success-light)', color: 'var(--color-success)' }}
+          >
+            <span className="h-2 w-2 rounded-full inline-block" style={{ backgroundColor: 'var(--color-success)' }} />
+            Compra segura
+          </span>
+          <h1 className="text-3xl font-black" style={{ color: 'var(--color-foreground)' }}>Confirmá tu pago</h1>
+          <p className="mt-1 text-sm" style={{ color: 'var(--color-muted)' }}>Revisá los detalles y elegí cómo querés pagar.</p>
+        </div>
+
+        {/* Main grid */}
+        <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
+
+          {/* LEFT COLUMN */}
+          <div className="flex flex-col gap-6">
+
+            {/* Producto */}
+            <section
+              className="rounded-2xl p-6 border"
+              style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
+                <span>📦</span> Producto
+              </p>
+              <div className="flex gap-4 items-start">
+                <div className="rounded-xl overflow-hidden shrink-0 border" style={{ borderColor: 'var(--color-border)' }}>
+                  <img
+                    src="https://images.unsplash.com/photo-1600185360814-bae279f266f7?auto=format&fit=crop&w=200&q=80"
+                    alt="Zapatillas UltraSprint"
+                    className="w-24 h-24 object-cover"
+                  />
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-base" style={{ color: 'var(--color-foreground)' }}>Zapatillas UltraSprint</p>
+                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-muted)' }}>Edición limitada · Talle 42</p>
+                  <div className="flex gap-2 mt-3 flex-wrap">
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}
+                    >Running</span>
+                    <span
+                      className="rounded-full px-3 py-1 text-xs font-semibold"
+                      style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}
+                    >Envío 24h</span>
+                  </div>
+                  <p className="text-xs mt-3" style={{ color: 'var(--color-muted)' }}>6 meses garantía</p>
                 </div>
               </div>
-            </div>
-            <div className="product-meta mt-8 grid gap-3 text-sm text-gray-300">
-              <div className="meta-item flex items-center justify-between rounded-3xl bg-gray-700 px-4 py-4 shadow-sm border border-gray-600">
-                <span>Stock</span>
-                <strong className="text-green-400">Disponible</strong>
-              </div>
-              <div className="meta-item flex items-center justify-between rounded-3xl bg-gray-700 px-4 py-4 shadow-sm border border-gray-600">
-                <span>Envío</span>
-                <strong className="text-green-400">24h</strong>
-              </div>
-              <div className="meta-item flex items-center justify-between rounded-3xl bg-gray-700 px-4 py-4 shadow-sm border border-gray-600">
-                <span>Garantía</span>
-                <strong className="text-green-400">6 meses</strong>
-              </div>
-            </div>
-          </article>
-        </section>
+            </section>
 
-        <section id="resumen" className="mt-10 grid gap-8 lg:grid-cols-[0.9fr_0.7fr]">
-          <div className="card rounded-[28px] bg-gray-900 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.5)] border border-gray-800">
-            <h3 className="text-xl font-bold text-white">Resumen de pago</h3>
-            <p className="mt-3 text-sm leading-6 text-gray-300">
-              Revisa los detalles de tu compra antes de confirmar. Puedes elegir el método de pago y ver el monto total de forma clara y segura.
-            </p>
-            <div className="mt-8 grid gap-4">
-              <div className="summary-row flex items-center justify-between rounded-3xl bg-gray-800 px-5 py-4 border border-gray-700">
-                <span className="text-gray-300">Producto</span>
-                <strong className="text-white">$ 18.999</strong>
+            {/* Resumen */}
+            <section
+              className="rounded-2xl p-6 border"
+              style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+            >
+              <p className="text-xs font-semibold uppercase tracking-widest mb-5 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
+                <span>🧾</span> Resumen
+              </p>
+              <div className="flex flex-col gap-3 text-sm">
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--color-muted)' }}>Producto</span>
+                  <span style={{ color: 'var(--color-foreground)' }}>$ 18.999</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--color-muted)' }}>Envío</span>
+                  <span style={{ color: 'var(--color-success)' }}>Gratis</span>
+                </div>
+                <div className="flex justify-between">
+                  <span style={{ color: 'var(--color-muted)' }}>Descuento</span>
+                  <span style={{ color: 'var(--color-success)' }}>– $ 1.900</span>
+                </div>
+                <div
+                  className="flex justify-between font-black text-base pt-4 mt-1 border-t"
+                  style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }}
+                >
+                  <span>Total</span>
+                  <span>$ 17.099</span>
+                </div>
               </div>
-              <div className="summary-row flex items-center justify-between rounded-3xl bg-gray-800 px-5 py-4 border border-gray-700">
-                <span className="text-gray-300">Envío</span>
-                <strong className="text-green-400">Gratis</strong>
-              </div>
-              <div className="summary-row flex items-center justify-between rounded-3xl bg-gray-800 px-5 py-4 border border-gray-700">
-                <span className="text-gray-300">Descuento</span>
-                <strong className="text-green-400">-$ 1.900</strong>
-              </div>
-              <div className="summary-total mt-4 rounded-[24px] bg-gray-800 p-5 text-lg font-semibold text-white border border-gray-700">
-                Total a pagar <span className="float-right text-2xl text-blue-400">$ 17.099</span>
-              </div>
+            </section>
+
+            {/* Info pills */}
+            <div className="grid grid-cols-3 gap-3">
+              {[
+                { label: 'Cuotas', value: '12x $1.425', sub: null },
+                { label: 'Interés', value: 'Sin Interés', highlight: true },
+                { label: 'Entrega', value: '24 h', sub: null },
+              ].map((item) => (
+                <div
+                  key={item.label}
+                  className="rounded-2xl p-4 text-center border"
+                  style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+                >
+                  <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{item.label}</p>
+                  <p
+                    className="font-black text-sm"
+                    style={{ color: item.highlight ? 'var(--color-success)' : 'var(--color-foreground)' }}
+                  >
+                    {item.value}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
 
-          <aside className="card rounded-[28px] bg-gray-900 p-8 shadow-[0_24px_80px_rgba(0,0,0,0.5)] border border-gray-800">
-            <h3 className="text-xl font-bold text-white">Método de pago</h3>
-            <div className="mt-6 grid gap-4">
-              <div className="payment-option rounded-[24px] border border-gray-700 bg-gray-800 p-5 hover:bg-gray-700 transition-colors">
-                <p className="font-semibold text-white">Tarjeta de crédito</p>
-                <p className="mt-2 text-sm text-gray-300">Visa, Mastercard, American Express.</p>
-              </div>
-              <div className="payment-option rounded-[24px] border border-gray-700 bg-gray-800 p-5 hover:bg-gray-700 transition-colors">
-                <p className="font-semibold text-white">Mercado Pago</p>
-                <p className="mt-2 text-sm text-gray-300">Paga con saldo o en cuotas de hasta 12 pagos.</p>
-              </div>
-              <div className="payment-option rounded-[24px] border border-gray-700 bg-gray-800 p-5 hover:bg-gray-700 transition-colors">
-                <p className="font-semibold text-white">Transferencia bancaria</p>
-                <p className="mt-2 text-sm text-gray-300">Recepción en 1-2 días hábiles.</p>
-              </div>
+          {/* RIGHT COLUMN — Método de pago */}
+          <aside
+            className="rounded-2xl p-6 border h-fit"
+            style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+          >
+            <p className="text-xs font-semibold uppercase tracking-widest mb-5 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
+              <span>💰</span> Método de Pago
+            </p>
+
+            <div className="flex flex-col gap-3">
+              {paymentMethods.map((method) => {
+                const isSelected = selectedPayment === method.id
+                return (
+                  <button
+                    key={method.id}
+                    onClick={() => setSelectedPayment(method.id)}
+                    className="flex items-center justify-between rounded-2xl px-4 py-4 border text-left transition-all"
+                    style={{
+                      backgroundColor: isSelected ? 'var(--color-info-light)' : 'var(--color-surface-alt)',
+                      borderColor: isSelected ? 'var(--color-info)' : 'var(--color-border)',
+                    }}
+                  >
+                    <div className="flex items-center gap-3">
+                      <span className="text-xl">{method.icon}</span>
+                      <div>
+                        <p className="font-semibold text-sm" style={{ color: 'var(--color-foreground)' }}>{method.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>{method.subtitle}</p>
+                      </div>
+                    </div>
+                    <span
+                      className="h-4 w-4 rounded-full border-2 shrink-0"
+                      style={{
+                        borderColor: isSelected ? 'var(--color-info)' : 'var(--color-border)',
+                        backgroundColor: isSelected ? 'var(--color-info)' : 'transparent',
+                      }}
+                    />
+                  </button>
+                )
+              })}
             </div>
-            <div className="mt-8 rounded-[26px] bg-yellow-400 p-5 text-sm text-black">
-              <strong className="block mb-2">Consejo:</strong>
-              Elige Mercado Pago para aprovechar cuotas sin interés y mayor seguridad en la compra.
+
+            {/* CTA */}
+            <button
+              className="mt-6 w-full rounded-2xl py-4 font-black text-base flex items-center justify-center gap-2 transition-all btn-primary"
+              style={{ letterSpacing: '-0.01em' }}
+            >
+              🔒 Pagar $ 17.099
+            </button>
+
+            {/* Disclaimer */}
+            <div
+              className="mt-4 rounded-2xl p-4 text-xs flex items-start gap-2"
+              style={{ backgroundColor: 'var(--color-info-light)', color: 'var(--color-info-dark)' }}
+            >
+              <span className="mt-0.5">ℹ️</span>
+              <span>Vas a ser redirigido a MercadoPago para completar el pago de forma segura.</span>
             </div>
           </aside>
-        </section>
+
+        </div>
       </div>
     </main>
   )
