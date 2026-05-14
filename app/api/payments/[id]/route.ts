@@ -1,3 +1,4 @@
+// GET /api/payments/:id
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 
@@ -9,7 +10,7 @@ export async function GET(
     const { id } = await params
 
     const pago = await prisma.pago.findUnique({
-      where: { id },
+      where:   { id },
       include: { transaccion: true },
     })
 
@@ -18,18 +19,19 @@ export async function GET(
     }
 
     return NextResponse.json({
-      id: pago.id,
-      orden_id: pago.ordenId,
-      user_id: pago.userId,
-      monto: pago.monto,
-      estado: pago.estado,
-      preference_id: pago.preferenceId,
-      transaccion: pago.transaccion ?? null,
-      createdAt: pago.createdAt,
+      id:           pago.id,
+      orderId:      pago.ordenId,
+      userId:       pago.userId,
+      monto:        pago.monto,
+      estado:       pago.estado,
+      status:       pago.estado.toLowerCase(),
+      preferenceId: pago.preferenceId,
+      transaccion:  pago.transaccion,
+      createdAt:    pago.createdAt,
     })
 
   } catch (error) {
-    console.error('Error en GET /payments/:id:', error)
+    console.error('Error en GET /api/payments/:id:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

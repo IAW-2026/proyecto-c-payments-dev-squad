@@ -1,21 +1,28 @@
+// GET /api/payments/confirm?payment_id=xxx&order_id=xxx
+// Llamado desde pago/exito/page.tsx para armar el resumen post-pago.
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { getSale } from '@/lib/services/sellerApp'
+import { getShipment } from '@/lib/services/shippingApp'
 
-export async function POST(req: NextRequest) {
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const paymentId = searchParams.get('payment_id')
+  const orderId   = searchParams.get('order_id')
+
+  if (!paymentId && !orderId) {
+    return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
+  }
+
   try {
-    const { pago_id } = await req.json()
-
-    if (!pago_id) {
-      return NextResponse.json(
-        { error: 'pago_id es requerido' },
-        { status: 400 }
-      )
-    }
-
-    // 1. Buscar el pago
-    const pago = await prisma.pago.findUnique({
-      where: { id: pago_id },
-      include: { transaccion: true }
+    const pago = await prisma.pago.findFirst({
+      where: {
+        OR: [
+          ...(paymentId ? [{ preferenceId: paymentId }] : []),
+          ...(orderId   ? [{ ordenId: orderId }]        : []),
+        ],
+      },
+      include: { transaccion: true },
     })
 
     if (!pago) {
@@ -24,48 +31,29 @@ export async function POST(req: NextRequest) {
 
     if (pago.estado !== 'APROBADO') {
       return NextResponse.json(
-        { error: 'El pago no está aprobado' },
-        { status: 400 }
+        { error: `El pago está en estado ${pago.estado.toLowerCase()}` },
+        { status: 402 }
       )
     }
 
-    if (!pago.transaccion) {
-      return NextResponse.json(
-        { error: 'No existe transacción asociada' },
-        { status: 400 }
-      )
-    }
-
-    // 2. Notificar a Seller App para acreditar
-    const sellerRes = await fetch(
-      `${process.env.SELLER_APP_URL}/sales/confirm`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          orden_id: pago.ordenId,
-          monto: pago.monto,
-          pago_id: pago.id,
-        })
-      }
-    )
-
-    if (!sellerRes.ok) {
-      return NextResponse.json(
-        { error: 'Error al acreditar al vendedor' },
-        { status: 502 }
-      )
-    }
+    const sale     = await getSale(pago.transaccion!.saleId)
+    const shipment = await getShipment(pago.ordenId)
 
     return NextResponse.json({
-      message: 'Pago acreditado correctamente',
-      pago_id: pago.id,
-      orden_id: pago.ordenId,
-      monto: pago.monto,
+      orderId:    pago.ordenId,
+      saleId:     sale.id,
+      shipmentId: shipment.id,
+      total:      pago.monto,
+      items:      sale.items,
+      shipment: {
+        status:            shipment.status,
+        estimatedDelivery: shipment.estimatedDelivery,
+        carrier:           shipment.carrier,
+      },
     })
 
   } catch (error) {
-    console.error('Error en POST /payments/confirm:', error)
+    console.error('Error en GET /api/payments/confirm:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }
