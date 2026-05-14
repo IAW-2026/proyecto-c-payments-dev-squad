@@ -22,11 +22,13 @@ model Pago {
 }
 
 model Transaccion {
-  id     String   @id @default(uuid())
-  pagoId String   @unique
-  pago   Pago     @relation(fields: [pagoId], references: [id])
-  metodo String
-  fecha  DateTime @default(now())
+  id         String   @id @default(uuid())
+  pagoId     String   @unique
+  pago       Pago     @relation(fields: [pagoId], references: [id])
+  metodo     String
+  saleId     String
+  shipmentId String
+  fecha      DateTime @default(now())
 
   @@map("transacciones")
 }
