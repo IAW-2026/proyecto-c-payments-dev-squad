@@ -13,18 +13,6 @@ export default function Home() {
       title: 'Mercado Pago',
       subtitle: 'Saldo, tarjeta o cuotas',
     },
-    {
-      id: 'credit',
-      icon: '🏦',
-      title: 'Tarjeta de crédito',
-      subtitle: 'Visa, Mastercard, Amex',
-    },
-    {
-      id: 'transfer',
-      icon: '🏛️',
-      title: 'Transferencia bancaria',
-      subtitle: 'Acreditación en 1-2 días',
-    },
   ]
 
   return (
