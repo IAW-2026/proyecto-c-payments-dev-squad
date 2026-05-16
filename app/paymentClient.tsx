@@ -4,7 +4,7 @@
 // Recibe los datos ya fetchados desde el Server Component (page.tsx).
 // Al hacer click en "Pagar" llama a POST /api/payments y redirige.
 import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ThemeToggle from '@/components/ThemeToggle'
 import { useTheme } from '@/lib/theme'
@@ -45,9 +45,12 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
   const { isSignedIn } = useUser()
   const router = useRouter()
   const { resolved } = useTheme()
+  const [mounted, setMounted] = useState(false)
   const [selectedPayment, setSelectedPayment] = useState<string>('mercadopago')
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => setMounted(true), [])
 
   const subtotal = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
   const firstItem = order.items[0]
@@ -109,26 +112,24 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
         >
           <div className="flex items-center gap-3">
             <img
-              src={resolved === 'dark'
-                ? '/logos/zapasya-dark.png'
-                : '/logos/zapasya-light.png'
+              src={!mounted || resolved === 'light'
+                ? '/logos/zapasya-light.png'
+                : '/logos/zapasya-dark.png'
               }
               alt="ZapasYa"
-              className="h-32 w-auto"
+              className="h-9 w-auto"
             />
-            <span className="text-lg font-normal" style={{ color: 'var(--color-muted)' }}>
+            <span className="text-sm font-normal" style={{ color: 'var(--color-muted)' }}>
               · Payments
             </span>
           </div>          <div className="flex items-center gap-3">
             <ThemeToggle />
             {isSignedIn ? (
-              <div className="h-12 w-12 rounded-full border flex items-center justify-center" style={{ borderColor: 'var(--color-border)' }}>
-                <UserButton />
-              </div>
+              <UserButton />
             ) : (
               <SignInButton>
                 <button
-                  className="flex items-center gap-2 rounded-full px-6 py-3 text-base font-semibold border btn-secondary"
+                  className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold border btn-secondary"
                   style={{ borderColor: 'var(--color-border)' }}
                 >
                   <span>👤</span> Iniciar sesión
