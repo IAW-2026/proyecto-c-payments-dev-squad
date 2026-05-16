@@ -50,6 +50,8 @@ body {
   --color-border:         #e5e7eb;
   --color-surface:        #ffffff;
   --color-surface-alt:    #f3f4f6;
+  --color-navbar:         #000000;
+  --color-navbar-text:    #ffffff;
 }
 
 /* ── DARK ────────────────────────────────────────────────────── */
@@ -89,6 +91,8 @@ body {
   --color-border:         #2a2a2a;
   --color-surface:        #111111;
   --color-surface-alt:    #1a1a1a;
+  --color-navbar:         #ffffff;
+  --color-navbar-text:    #000000;
 }
 
 /* ── Buttons ─────────────────────────────────────────────────── */

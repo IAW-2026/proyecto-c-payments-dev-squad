@@ -17,12 +17,12 @@ export default function ThemeToggle() {
       aria-label={resolved === 'dark' ? 'Cambiar a modo claro' : 'Cambiar a modo oscuro'}
       className="rounded-full border flex items-center justify-center transition-all"
       style={{
-        width:           '36px',
-        height:          '36px',
+        width:           '54px',
+        height:          '54px',
         borderColor:     'var(--color-border)',
         backgroundColor: 'var(--color-surface-alt)',
         color:           'var(--color-foreground)',
-        fontSize:        '16px',
+        fontSize:        '20px',
       }}
     >
       {resolved === 'dark' ? '☀️' : '🌙'}
