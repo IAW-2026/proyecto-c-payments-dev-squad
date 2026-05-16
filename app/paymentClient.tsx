@@ -6,6 +6,7 @@
 import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface OrderItem {
   id:        string
@@ -110,18 +111,21 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
               · Payments
             </span>
           </span>
-          {isSignedIn ? (
-            <UserButton />
-          ) : (
-            <SignInButton>
-              <button
-                className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold border btn-secondary"
-                style={{ borderColor: 'var(--color-border)' }}
-              >
-                <span>👤</span> Iniciar sesión
-              </button>
-            </SignInButton>
-          )}
+          <div className="flex items-center gap-3">
+            <ThemeToggle />
+            {isSignedIn ? (
+              <UserButton />
+            ) : (
+              <SignInButton>
+                <button
+                  className="flex items-center gap-2 rounded-full px-5 py-2 text-sm font-semibold border btn-secondary"
+                  style={{ borderColor: 'var(--color-border)' }}
+                >
+                  <span>👤</span> Iniciar sesión
+                </button>
+              </SignInButton>
+            )}
+          </div>
         </nav>
 
         {/* Badge + Title */}
