@@ -32,9 +32,10 @@ export default async function RootLayout({
         </head>
         <body>
           <ThemeProvider>
-            <div className="flex min-h-screen" style={{ backgroundColor: 'var(--color-background)' }}>
+            <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
               <Sidebar role={role} />
-              <main className="flex-1 overflow-auto">
+              {/* paddingLeft = ancho del sidebar colapsado (64px) */}
+              <main style={{ paddingLeft: '64px', minHeight: '100vh' }}>
                 {children}
               </main>
             </div>

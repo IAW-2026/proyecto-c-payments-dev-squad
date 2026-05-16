@@ -117,7 +117,7 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
                 : '/logos/zapasya-dark.png'
               }
               alt="ZapasYa"
-              className="h-9 w-auto"
+              className="h-16 w-auto"
             />
             <span className="text-sm font-normal" style={{ color: 'var(--color-muted)' }}>
               · Payments
