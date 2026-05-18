@@ -9,6 +9,7 @@ import Link from 'next/link'
 import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@/lib/theme'
+import ThemeToggle from '@/components/ThemeToggle'
 
 interface SidebarProps {
   role:         'admin' | 'user'
@@ -35,8 +36,9 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
   ]
 
   const adminItems: NavItem[] = [
-    { href: buyerAppUrl,             label: 'Inicio',         icon: '🏠', external: buyerAppUrl.startsWith('http') },
+    { href: '/admin/dashboard',      label: 'Dashboard',      icon: '📊' },
     { href: '/admin/transferencias', label: 'Transferencias', icon: '💸' },
+    { href: '/admin/disputas',       label: 'Disputas',       icon: '⚠️' },
   ]
 
   const items = role === 'admin' ? adminItems : userItems
@@ -110,7 +112,7 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
                 ? '/logos/zapasya-light.png'
                 : '/logos/zapasya-dark.png'}
               alt="ZapasYa"
-              style={{ height: '40px', width: 'auto' }}
+              style={{ height: '32px', width: 'auto' }}
             />
           </div>
         </div>
@@ -177,6 +179,27 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
             )
           })}
         </nav>
+
+        {/* Footer */}
+        <div style={{
+          padding:    '12px',
+          borderTop:  '1px solid var(--color-border)',
+          display:    'flex',
+          alignItems: 'center',
+          gap:        '10px',
+          overflow:   'hidden',
+        }}>
+          <ThemeToggle />
+          <span style={{
+            fontSize:   '12px',
+            color:      'var(--color-muted)',
+            opacity:    open ? 1 : 0,
+            whiteSpace: 'nowrap',
+            transition: 'opacity 0.15s ease',
+          }}>
+            Cambiar tema
+          </span>
+        </div>
 
       </aside>
     </>
