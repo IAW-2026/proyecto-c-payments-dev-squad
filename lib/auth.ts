@@ -9,23 +9,20 @@
 //     publicMetadata: { role: 'admin' }
 //   })
 
-import { auth, currentUser } from '@clerk/nextjs/server'
+import { currentUser } from '@clerk/nextjs/server'
 
 export type UserRole = 'admin' | 'user'
 
-/**
- * Server-side: devuelve el rol del usuario autenticado.
- * Usalo en Server Components y route handlers.
- */
 export async function getRole(): Promise<UserRole> {
-  const user = await currentUser()
-  const role = user?.publicMetadata?.role
-  return role === 'admin' ? 'admin' : 'user'
+  try {
+    const user = await currentUser()
+    if (!user) return 'user'
+    return user.publicMetadata?.role === 'admin' ? 'admin' : 'user'
+  } catch {
+    return 'user'
+  }
 }
 
-/**
- * Server-side: devuelve true si el usuario es admin.
- */
 export async function isAdmin(): Promise<boolean> {
   return (await getRole()) === 'admin'
 }
