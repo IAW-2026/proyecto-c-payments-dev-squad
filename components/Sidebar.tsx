@@ -10,6 +10,7 @@ import { usePathname } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import { useTheme } from '@/lib/theme'
 import ThemeToggle from '@/components/ThemeToggle'
+import { UserButton } from '@clerk/nextjs'
 
 interface SidebarProps {
   role:         'admin' | 'user'
@@ -198,6 +199,27 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
             transition: 'opacity 0.15s ease',
           }}>
             Cambiar tema
+          </span>
+        </div>
+
+        {/* Usuario */}
+        <div style={{
+          padding:    '12px',
+          borderTop:  '1px solid var(--color-border)',
+          display:    'flex',
+          alignItems: 'center',
+          gap:        '10px',
+          overflow:   'hidden',
+        }}>
+          <UserButton />
+          <span style={{
+            fontSize:   '12px',
+            color:      'var(--color-muted)',
+            opacity:    open ? 1 : 0,
+            whiteSpace: 'nowrap',
+            transition: 'opacity 0.15s ease',
+          }}>
+            Mi cuenta
           </span>
         </div>
 
