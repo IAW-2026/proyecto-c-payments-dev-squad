@@ -1,8 +1,5 @@
 'use client'
-// app/payments/PaymentClient.tsx
-// Componente interactivo de pago.
-// Recibe los datos ya fetchados desde el Server Component (page.tsx).
-// Al hacer click en "Pagar" llama a POST /api/payments y redirige.
+// app/paymentClient.tsx
 import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
@@ -10,11 +7,12 @@ import ThemeToggle from '@/components/ThemeToggle'
 import { useTheme } from '@/lib/theme'
 
 interface OrderItem {
-  id:        string
-  productId: string
-  name:      string
-  quantity:  number
-  price:     number
+  name:     string
+  price:    number
+  quantity: number
+  size:     number
+  color:    string | null
+  imageUrl: string | null
 }
 
 interface Order {
@@ -22,71 +20,47 @@ interface Order {
   total:    number
   discount: number
   shipping: number
+  status:   string
+  address:  string
+  carrier:  'MAIL' | 'PICKUP'
   items:    OrderItem[]
-}
-
-interface Product {
-  id:       string
-  name:     string
-  image:    string
-  category: string
-  brand:    string
-  sizes:    number[]
 }
 
 interface Props {
   orderId: string
   userId:  string
   order:   Order
-  product: Product
 }
 
-export default function PaymentClient({ orderId, userId, order, product }: Props) {
-  const { isSignedIn } = useUser()
-  const router = useRouter()
-  const { resolved } = useTheme()
+export default function PaymentClient({ orderId, userId, order }: Props) {
+  const { isSignedIn }        = useUser()
+  const router                = useRouter()
+  const { resolved }          = useTheme()
   const [mounted, setMounted] = useState(false)
-  const [selectedPayment, setSelectedPayment] = useState<string>('mercadopago')
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const [error, setError]     = useState<string | null>(null)
+  const [selectedPayment, setSelectedPayment] = useState('mercadopago')
 
   useEffect(() => setMounted(true), [])
 
-  const subtotal = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
   const firstItem = order.items[0]
-
-  const paymentMethods = [
-    {
-      id:       'mercadopago',
-      icon:     '💳',
-      title:    'Mercado Pago',
-      subtitle: 'Saldo, tarjeta o cuotas',
-    },
-  ]
+  const subtotal  = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
 
   async function handlePagar() {
     setLoading(true)
     setError(null)
-
     try {
       const res = await fetch('/api/payments', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
         body:    JSON.stringify({ orderId, userId }),
       })
-
       const data = await res.json()
-
-      if (!res.ok) {
-        throw new Error(data.error ?? 'Error al iniciar el pago')
-      }
-
+      if (!res.ok) throw new Error(data.error ?? 'Error al iniciar el pago')
       if (data.init_point) {
-        // MP configurado → redirige a checkout de MercadoPago
         window.location.href = data.init_point
       } else {
-        // Dev sin MP_ACCESS_TOKEN → simula flujo exitoso
-        router.push(`/pago/exito?order_id=${orderId}`)
+        router.push(`/pago/exitoso?order_id=${orderId}`)
       }
     } catch (e: any) {
       setError(e.message ?? 'Ocurrió un error inesperado')
@@ -95,8 +69,9 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
     }
   }
 
-  // Talle seleccionado — se puede expandir con useState si se necesita
-  const talleDisplay = product.sizes?.includes(42) ? 42 : product.sizes?.[0] ?? '—'
+  const paymentMethods = [
+    { id: 'mercadopago', icon: '💳', title: 'Mercado Pago', subtitle: 'Saldo, tarjeta o cuotas' },
+  ]
 
   return (
     <main
@@ -114,15 +89,15 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
             <img
               src={!mounted || resolved === 'light'
                 ? '/logos/zapasya-light.png'
-                : '/logos/zapasya-dark.png'
-              }
+                : '/logos/zapasya-dark.png'}
               alt="ZapasYa"
-              className="h-16 w-auto"
+              className="h-10 w-auto"
             />
             <span className="text-sm font-normal" style={{ color: 'var(--color-muted)' }}>
               · Payments
             </span>
-          </div>          <div className="flex items-center gap-3">
+          </div>
+          <div className="flex items-center gap-3">
             <ThemeToggle />
             {isSignedIn ? (
               <UserButton />
@@ -145,10 +120,7 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
             className="inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest mb-4"
             style={{ backgroundColor: 'var(--color-success-light)', color: 'var(--color-success)' }}
           >
-            <span
-              className="h-2 w-2 rounded-full inline-block"
-              style={{ backgroundColor: 'var(--color-success)' }}
-            />
+            <span className="h-2 w-2 rounded-full inline-block" style={{ backgroundColor: 'var(--color-success)' }} />
             Compra segura
           </span>
           <h1 className="text-3xl font-black" style={{ color: 'var(--color-foreground)' }}>
@@ -162,56 +134,68 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
         {/* Main grid */}
         <div className="grid gap-6 lg:grid-cols-[1fr_420px]">
 
-          {/* LEFT COLUMN */}
+          {/* LEFT */}
           <div className="flex flex-col gap-6">
 
-            {/* Producto */}
+            {/* Productos */}
             <section
               className="rounded-2xl p-6 border"
               style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-4 flex items-center gap-2"
-                style={{ color: 'var(--color-muted)' }}
-              >
-                <span>📦</span> Producto
+              <p className="text-xs font-semibold uppercase tracking-widest mb-4 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
+                <span>📦</span> Producto{order.items.length > 1 ? 's' : ''}
               </p>
-              <div className="flex gap-4 items-start">
-                <div
-                  className="rounded-xl overflow-hidden shrink-0 border"
-                  style={{ borderColor: 'var(--color-border)' }}
-                >
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="w-24 h-24 object-cover"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-base" style={{ color: 'var(--color-foreground)' }}>
-                    {firstItem?.name ?? product.name}
-                  </p>
-                  <p className="text-sm mt-0.5" style={{ color: 'var(--color-muted)' }}>
-                    Edición limitada · Talle {talleDisplay}
-                  </p>
-                  <div className="flex gap-2 mt-3 flex-wrap">
-                    <span
-                      className="rounded-full px-3 py-1 text-xs font-semibold"
-                      style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}
-                    >
-                      {product.category}
-                    </span>
-                    <span
-                      className="rounded-full px-3 py-1 text-xs font-semibold"
-                      style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}
-                    >
-                      Envío 24h
-                    </span>
+
+              <div className="flex flex-col gap-4">
+                {order.items.map((item, i) => (
+                  <div key={i} className="flex gap-4 items-start">
+                    {/* Imagen */}
+                    <div className="rounded-xl overflow-hidden shrink-0 border" style={{ borderColor: 'var(--color-border)' }}>
+                      {item.imageUrl ? (
+                        <img src={item.imageUrl} alt={item.name} className="w-24 h-24 object-cover" />
+                      ) : (
+                        <div className="w-24 h-24 flex items-center justify-center text-3xl" style={{ backgroundColor: 'var(--color-muted-light)' }}>
+                          👟
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Info */}
+                    <div className="flex-1">
+                      <p className="font-bold text-base" style={{ color: 'var(--color-foreground)' }}>
+                        {item.name}
+                      </p>
+                      <div className="flex gap-2 mt-2 flex-wrap">
+                        <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}>
+                          Talle {item.size}
+                        </span>
+                        {item.color && (
+                          <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}>
+                            {item.color}
+                          </span>
+                        )}
+                        {item.quantity > 1 && (
+                          <span className="rounded-full px-3 py-1 text-xs font-semibold" style={{ backgroundColor: 'var(--color-muted-light)', color: 'var(--color-muted)' }}>
+                            x{item.quantity}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-sm font-semibold mt-2" style={{ color: 'var(--color-foreground)' }}>
+                        $ {(item.price * item.quantity).toLocaleString('es-AR')}
+                      </p>
+                    </div>
                   </div>
-                  <p className="text-xs mt-3" style={{ color: 'var(--color-muted)' }}>
-                    6 meses garantía
-                  </p>
-                </div>
+                ))}
+              </div>
+
+              {/* Dirección y envío */}
+              <div className="mt-4 pt-4 border-t flex items-center gap-2 text-xs" style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}>
+                <span>{order.carrier === 'MAIL' ? '🚚' : '🏪'}</span>
+                <span>
+                  {order.carrier === 'MAIL'
+                    ? `Envío a: ${order.address}`
+                    : 'Retiro en tienda'}
+                </span>
               </div>
             </section>
 
@@ -220,35 +204,25 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
               className="rounded-2xl p-6 border"
               style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             >
-              <p
-                className="text-xs font-semibold uppercase tracking-widest mb-5 flex items-center gap-2"
-                style={{ color: 'var(--color-muted)' }}
-              >
+              <p className="text-xs font-semibold uppercase tracking-widest mb-5 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
                 <span>🧾</span> Resumen
               </p>
               <div className="flex flex-col gap-3 text-sm">
                 <div className="flex justify-between">
-                  <span style={{ color: 'var(--color-muted)' }}>Producto</span>
-                  <span style={{ color: 'var(--color-foreground)' }}>
-                    $ {subtotal.toLocaleString('es-AR')}
-                  </span>
+                  <span style={{ color: 'var(--color-muted)' }}>Subtotal</span>
+                  <span style={{ color: 'var(--color-foreground)' }}>$ {subtotal.toLocaleString('es-AR')}</span>
                 </div>
                 <div className="flex justify-between">
                   <span style={{ color: 'var(--color-muted)' }}>Envío</span>
-                  {order.shipping === 0 ? (
-                    <span style={{ color: 'var(--color-success)' }}>Gratis</span>
-                  ) : (
-                    <span style={{ color: 'var(--color-foreground)' }}>
-                      $ {order.shipping.toLocaleString('es-AR')}
-                    </span>
-                  )}
+                  {order.shipping === 0
+                    ? <span style={{ color: 'var(--color-success)' }}>Gratis</span>
+                    : <span style={{ color: 'var(--color-foreground)' }}>$ {order.shipping.toLocaleString('es-AR')}</span>
+                  }
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between">
                     <span style={{ color: 'var(--color-muted)' }}>Descuento</span>
-                    <span style={{ color: 'var(--color-success)' }}>
-                      – $ {order.discount.toLocaleString('es-AR')}
-                    </span>
+                    <span style={{ color: 'var(--color-success)' }}>– $ {order.discount.toLocaleString('es-AR')}</span>
                   </div>
                 )}
                 <div
@@ -264,20 +238,17 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
             {/* Info pills */}
             <div className="grid grid-cols-3 gap-3">
               {[
-                { label: 'Cuotas',   value: `12x $${Math.ceil(order.total / 12).toLocaleString('es-AR')}`, highlight: false },
-                { label: 'Interés',  value: 'Sin Interés', highlight: true },
-                { label: 'Entrega',  value: '24 h',        highlight: false },
-              ].map((item) => (
+                { label: 'Cuotas',  value: `12x $${Math.ceil(order.total / 12).toLocaleString('es-AR')}`, highlight: false },
+                { label: 'Interés', value: 'Sin Interés', highlight: true },
+                { label: 'Entrega', value: order.carrier === 'MAIL' ? '24-48 h' : 'Retiro', highlight: false },
+              ].map(item => (
                 <div
                   key={item.label}
                   className="rounded-2xl p-4 text-center border"
                   style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
                 >
                   <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{item.label}</p>
-                  <p
-                    className="font-black text-sm"
-                    style={{ color: item.highlight ? 'var(--color-success)' : 'var(--color-foreground)' }}
-                  >
+                  <p className="font-black text-sm" style={{ color: item.highlight ? 'var(--color-success)' : 'var(--color-foreground)' }}>
                     {item.value}
                   </p>
                 </div>
@@ -285,20 +256,17 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
             </div>
           </div>
 
-          {/* RIGHT COLUMN — Método de pago */}
+          {/* RIGHT — Método de pago */}
           <aside
             className="rounded-2xl p-6 border h-fit"
             style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
           >
-            <p
-              className="text-xs font-semibold uppercase tracking-widest mb-5 flex items-center gap-2"
-              style={{ color: 'var(--color-muted)' }}
-            >
+            <p className="text-xs font-semibold uppercase tracking-widest mb-5 flex items-center gap-2" style={{ color: 'var(--color-muted)' }}>
               <span>💰</span> Método de Pago
             </p>
 
             <div className="flex flex-col gap-3">
-              {paymentMethods.map((method) => {
+              {paymentMethods.map(method => {
                 const isSelected = selectedPayment === method.id
                 return (
                   <button
@@ -313,12 +281,8 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
                     <div className="flex items-center gap-3">
                       <span className="text-xl">{method.icon}</span>
                       <div>
-                        <p className="font-semibold text-sm" style={{ color: 'var(--color-foreground)' }}>
-                          {method.title}
-                        </p>
-                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>
-                          {method.subtitle}
-                        </p>
+                        <p className="font-semibold text-sm" style={{ color: 'var(--color-foreground)' }}>{method.title}</p>
+                        <p className="text-xs mt-0.5" style={{ color: 'var(--color-muted)' }}>{method.subtitle}</p>
                       </div>
                     </div>
                     <span
@@ -333,30 +297,25 @@ export default function PaymentClient({ orderId, userId, order, product }: Props
               })}
             </div>
 
-            {/* Error */}
             {error && (
-              <p className="mt-4 text-sm text-center rounded-xl px-3 py-2" style={{ color: 'var(--color-error, #dc2626)', backgroundColor: 'var(--color-error-light, #fef2f2)' }}>
+              <p className="mt-4 text-sm text-center rounded-xl px-3 py-2"
+                style={{ color: 'var(--color-error, #dc2626)', backgroundColor: 'var(--color-error-light, #fef2f2)' }}>
                 ⚠️ {error}
               </p>
             )}
 
-            {/* CTA */}
             <button
               onClick={handlePagar}
               disabled={loading}
               className="mt-6 w-full rounded-2xl py-4 font-black text-base flex items-center justify-center gap-2 transition-all btn-primary disabled:opacity-60 disabled:cursor-not-allowed"
               style={{ letterSpacing: '-0.01em' }}
             >
-              {loading ? (
-                <>
-                  <span className="animate-spin inline-block">⏳</span> Procesando...
-                </>
-              ) : (
-                <>🔒 Pagar $ {order.total.toLocaleString('es-AR')}</>
-              )}
+              {loading
+                ? <><span className="animate-spin inline-block">⏳</span> Procesando...</>
+                : <>🔒 Pagar $ {order.total.toLocaleString('es-AR')}</>
+              }
             </button>
 
-            {/* Disclaimer */}
             <div
               className="mt-4 rounded-2xl p-4 text-xs flex items-start gap-2"
               style={{ backgroundColor: 'var(--color-info-light)', color: 'var(--color-info-dark)' }}

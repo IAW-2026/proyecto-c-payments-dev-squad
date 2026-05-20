@@ -2,7 +2,7 @@
 // Llamado desde pago/exito/page.tsx para armar el resumen post-pago.
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import { getSale } from '@/lib/services/sellerApp'
+import * as sellerApp from '@/lib/services/sellerApp'
 import { getShipment } from '@/lib/services/shippingApp'
 
 export async function GET(req: NextRequest) {
@@ -36,7 +36,7 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const sale     = await getSale(pago.transaccion!.saleId)
+    const sale     = await (sellerApp as any).getSale(pago.transaccion!.saleId)
     const shipment = await getShipment(pago.ordenId)
 
     return NextResponse.json({

@@ -1,3 +1,4 @@
+// app/api/payments/webhook/route.ts
 // POST /api/payments/webhook  ← MP llama acá
 //
 // PARA PROBAR LOCALMENTE:
@@ -6,8 +7,9 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { prisma } from '@/lib/db'
-import { postSale } from '@/lib/services/sellerApp'
+import { getSeller, postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
+import { getOrder } from '@/lib/services/buyerApp'
 
 const client = new MercadoPagoConfig({
   accessToken: process.env.MP_ACCESS_TOKEN!,
@@ -40,9 +42,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sin external_reference' }, { status: 400 })
     }
 
-    const pago = await prisma.pago.findFirst({
-      where: { ordenId },
-    })
+    const pago = await prisma.pago.findFirst({ where: { ordenId } })
 
     if (!pago) {
       return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
@@ -54,31 +54,37 @@ export async function POST(req: NextRequest) {
     })
 
     if (nuevoEstado === 'APROBADO') {
+      // Traer la orden completa para tener items, address y carrier
+      const order    = await getOrder(ordenId)
+      const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
+
+      // Notificar al seller que la venta fue confirmada
       const sale = await postSale({
-        orderId:   ordenId,
-        sellerId:  mpPayment.collector_id?.toString() ?? '',
-        paymentId: pago.id,
-        total:     mpPayment.transaction_amount ?? pago.monto,
-        items:     [],
+        orderId:  ordenId,
+        sellerId,
+        total:    mpPayment.transaction_amount ?? pago.monto,
       })
 
+      // Crear el envío con los datos reales de la orden
       const shipment = await postShipment({
         orderId:  ordenId,
         buyerId:  pago.userId,
-        sellerId: mpPayment.collector_id?.toString() ?? '',
-        items:    [],
-        address:  { street: '', city: '', zip: '' },
+        sellerId,
+        items:    order.items.map(i => ({ productId: i.name, quantity: i.quantity })),
+        address: {
+          street: order.address,
+          city:   '',
+          zip:    '',
+        },
+        carrier: order.carrier,
       })
 
       await prisma.transaccion.upsert({
         where:  { pagoId: pago.id },
-        update: {
-          saleId:     sale.id,
-          shipmentId: shipment.id,
-        },
+        update: { saleId: sale.id, shipmentId: shipment.id },
         create: {
           pagoId:     pago.id,
-          metodo:     mpPayment.payment_method_id ?? 'desconocido',
+          metodo:     mpPayment.payment_method_id ?? 'mercadopago',
           saleId:     sale.id,
           shipmentId: shipment.id,
         },

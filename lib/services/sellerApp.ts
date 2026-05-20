@@ -1,58 +1,65 @@
 // lib/services/sellerApp.ts
 // Llamadas a Seller App:
-// POST /sales
-// GET /sales/{id}
-// GET /products/{id}
+// GET  /sellers/{id}   → datos del vendedor (para que MP le transfiera)
+// POST /sales          → confirmar venta al vendedor
 
 const SELLER_APP_URL = process.env.NEXT_PUBLIC_SELLER_APP_URL || ''
 
-const MOCK_PRODUCT = {
-  id:          'prod-mock-001',
-  name:        'Zapatillas UltraSprint',
-  description: 'Zapatilla de running de edición limitada con suela de carbono.',
-  price:       18999,
-  stock:       5,
-  brand:       'UltraSprint',
-  category:    'Running',
-  image:       'https://images.unsplash.com/photo-1600185360814-bae279f266f7?auto=format&fit=crop&w=200&q=80',
-  sizes:       [40, 41, 42, 43, 44],
-  sellerId:    'seller-mock-001',
+interface Seller {
+  id:         string
+  name:       string
+  email:      string
+  mpAccountId: string  // ID de cuenta MP del vendedor — para split de pagos
 }
 
-const MOCK_SALE = {
+interface Sale {
+  id:       string
+  sellerId: string
+  orderId:  string
+  status:   string
+  total:    number
+}
+
+const MOCK_SELLER: Seller = {
+  id:          'seller-mock-001',
+  name:        'UltraSprint Store',
+  email:       'ventas@ultrasprint.com',
+  mpAccountId: 'MP_COLLECTOR_MOCK_001',
+}
+
+const MOCK_SALE: Sale = {
   id:       'sale-mock-001',
   sellerId: 'seller-mock-001',
   orderId:  'order-mock-001',
   status:   'confirmed',
   total:    17099,
-  items: [
-    {
-      productId: 'prod-mock-001',
-      quantity:  1,
-      price:     18999,
-    },
-  ],
 }
 
-export async function getProduct(productId: string) {
-  if (!SELLER_APP_URL) return MOCK_PRODUCT
+/**
+ * Obtiene los datos del vendedor — necesario para saber a qué cuenta MP
+ * transferirle el monto correspondiente.
+ */
+export async function getSeller(sellerId: string): Promise<Seller> {
+  if (!SELLER_APP_URL) return MOCK_SELLER
   try {
-    const res = await fetch(`${SELLER_APP_URL}/products/${productId}`)
+    const res = await fetch(`${SELLER_APP_URL}/sellers/${sellerId}`)
     if (!res.ok) throw new Error()
     return await res.json()
   } catch {
-    return MOCK_PRODUCT
+    return MOCK_SELLER
   }
 }
 
+/**
+ * Notifica al seller que la venta fue confirmada, indicando el monto
+ * que le corresponde. MP se encarga de la transferencia via marketplace.
+ */
 export async function postSale(payload: {
-  orderId:   string
-  sellerId:  string
-  paymentId: string
-  total:     number
-  items:     { productId: string; quantity: number; price: number }[]
-}) {
-  if (!SELLER_APP_URL) return MOCK_SALE
+  orderId:  string
+  sellerId: string
+  total:    number
+}): Promise<Sale> {
+  if (!SELLER_APP_URL) return { ...MOCK_SALE, orderId: payload.orderId, total: payload.total }
   try {
     const res = await fetch(`${SELLER_APP_URL}/sales`, {
       method:  'POST',
@@ -62,17 +69,6 @@ export async function postSale(payload: {
     if (!res.ok) throw new Error()
     return await res.json()
   } catch {
-    return MOCK_SALE
-  }
-}
-
-export async function getSale(saleId: string) {
-  if (!SELLER_APP_URL) return MOCK_SALE
-  try {
-    const res = await fetch(`${SELLER_APP_URL}/sales/${saleId}`)
-    if (!res.ok) throw new Error()
-    return await res.json()
-  } catch {
-    return MOCK_SALE
+    return { ...MOCK_SALE, orderId: payload.orderId, total: payload.total }
   }
 }

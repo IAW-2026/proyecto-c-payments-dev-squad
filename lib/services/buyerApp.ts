@@ -2,24 +2,49 @@
 // Llamadas a Buyer App:
 // GET /orders/{id}
 // GET /users/{id}
+//
+// El mock refleja la estructura real que manda la buyer app.
 
 const BUYER_APP_URL = process.env.NEXT_PUBLIC_BUYER_APP_URL || ''
 
-const MOCK_ORDER = {
+interface OrderItem {
+  name:     string
+  price:    number
+  quantity: number
+  size:     number
+  color:    string | null
+  imageUrl: string | null
+}
+
+interface Order {
+  id:       string
+  userId:   string
+  total:    number
+  discount: number
+  shipping: number
+  status:   string
+  address:  string
+  carrier:  'MAIL' | 'PICKUP'
+  items:    OrderItem[]
+}
+
+const MOCK_ORDER: Order = {
   id:       'order-mock-001',
   userId:   'user-mock-001',
   total:    17099,
   discount: 1900,
   shipping: 0,
   status:   'PENDING',
+  address:  'Av. Rivadavia 3450, Buenos Aires, 1204',
+  carrier:  'MAIL',
   items: [
     {
-      id:        'item-mock-001',
-      orderId:   'order-mock-001',
-      productId: 'prod-mock-001',
-      name:      'Zapatillas UltraSprint',
-      quantity:  1,
-      price:     18999,
+      name:     'Zapatillas UltraSprint',
+      price:    18999,
+      quantity: 1,
+      size:     42,
+      color:    'Negro',
+      imageUrl: 'https://images.unsplash.com/photo-1600185360814-bae279f266f7?auto=format&fit=crop&w=200&q=80',
     },
   ],
 }
@@ -32,7 +57,7 @@ const MOCK_USER = {
   lastName:  'Fernández',
 }
 
-export async function getOrder(orderId: string) {
+export async function getOrder(orderId: string): Promise<Order> {
   if (!BUYER_APP_URL) return MOCK_ORDER
   try {
     const res = await fetch(`${BUYER_APP_URL}/orders/${orderId}`)
