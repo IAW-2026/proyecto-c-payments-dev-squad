@@ -214,10 +214,13 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                 </div>
                 <div className="flex justify-between">
                   <span style={{ color: 'var(--color-muted)' }}>Envío</span>
-                  {order.shipping === 0
-                    ? <span style={{ color: 'var(--color-success)' }}>Gratis</span>
-                    : <span style={{ color: 'var(--color-foreground)' }}>$ {order.shipping.toLocaleString('es-AR')}</span>
-                  }
+                  {order.carrier === 'PICKUP' ? (
+                    <span style={{ color: 'var(--color-success)' }}>Gratis</span>
+                  ) : order.shipping === 0 ? (
+                    <span style={{ color: 'var(--color-muted)', fontStyle: 'italic' }}>A calcular</span>
+                  ) : (
+                    <span style={{ color: 'var(--color-foreground)' }}>$ {order.shipping.toLocaleString('es-AR')}</span>
+                  )}
                 </div>
                 {order.discount > 0 && (
                   <div className="flex justify-between">
@@ -235,24 +238,26 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
               </div>
             </section>
 
-            {/* Info pills */}
-            <div className="grid grid-cols-3 gap-3">
-              {[
-                { label: 'Cuotas',  value: `12x $${Math.ceil(order.total / 12).toLocaleString('es-AR')}`, highlight: false },
-                { label: 'Interés', value: 'Sin Interés', highlight: true },
-                { label: 'Entrega', value: order.carrier === 'MAIL' ? '24-48 h' : 'Retiro', highlight: false },
-              ].map(item => (
-                <div
-                  key={item.label}
-                  className="rounded-2xl p-4 text-center border"
-                  style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-                >
-                  <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>{item.label}</p>
-                  <p className="font-black text-sm" style={{ color: item.highlight ? 'var(--color-success)' : 'var(--color-foreground)' }}>
-                    {item.value}
-                  </p>
-                </div>
-              ))}
+            {/* Info pills — solo lo que es dato real */}
+            <div className="grid grid-cols-2 gap-3">
+              <div
+                className="rounded-2xl p-4 text-center border"
+                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              >
+                <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Interés</p>
+                <p className="font-black text-sm" style={{ color: 'var(--color-success)' }}>
+                  Sin Interés
+                </p>
+              </div>
+              <div
+                className="rounded-2xl p-4 text-center border"
+                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              >
+                <p className="text-xs mb-1" style={{ color: 'var(--color-muted)' }}>Entrega</p>
+                <p className="font-black text-sm" style={{ color: 'var(--color-foreground)' }}>
+                  {order.carrier === 'MAIL' ? '🚚 Envío' : '🏪 Retiro'}
+                </p>
+              </div>
             </div>
           </div>
 
