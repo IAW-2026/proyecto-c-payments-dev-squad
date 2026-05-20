@@ -1,90 +1,80 @@
-// app/api/payments/webhook/route.ts
-// POST /api/payments/webhook  ← MP llama acá
-//
-// PARA PROBAR LOCALMENTE:
-//   npx ngrok http 3000
-//   MP NO TIENE ACCESO A LOCALHOST — guardá la URL de ngrok en .env como NEXT_PUBLIC_URL
+// app/api/payments/route.ts
+// POST /api/payments — crea la preferencia de MP y devuelve init_point
 import { NextRequest, NextResponse } from 'next/server'
-import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { prisma } from '@/lib/db'
-import { getSeller, postSale } from '@/lib/services/sellerApp'
-import { postShipment } from '@/lib/services/shippingApp'
 import { getOrder } from '@/lib/services/buyerApp'
-
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN!,
-})
-
-const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
-  approved: 'APROBADO',
-  rejected: 'RECHAZADO',
-  pending:  'PENDIENTE',
-}
 
 export async function POST(req: NextRequest) {
   try {
-    const body = await req.json()
+    const { orderId, userId } = await req.json()
 
-    if (body.type !== 'payment') {
-      return NextResponse.json({ received: true })
+    if (!orderId || !userId) {
+      return NextResponse.json(
+        { error: 'orderId y userId son requeridos' },
+        { status: 400 }
+      )
     }
 
-    const mpPaymentId = body.data?.id
-    if (!mpPaymentId) {
-      return NextResponse.json({ error: 'Sin payment id' }, { status: 400 })
-    }
+    const order = await getOrder(orderId)
 
-    const mpPayment   = await new Payment(client).get({ id: mpPaymentId })
-    const ordenId     = mpPayment.external_reference
-    const nuevoEstado = estadoMap[mpPayment.status ?? ''] ?? 'PENDIENTE'
-
-    if (!ordenId) {
-      return NextResponse.json({ error: 'Sin external_reference' }, { status: 400 })
-    }
-
-    const pago = await prisma.pago.findFirst({ where: { ordenId } })
-
-    if (!pago) {
-      return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
-    }
-
-    await prisma.pago.update({
-      where: { id: pago.id },
-      data:  { estado: nuevoEstado },
-    })
-
-    if (nuevoEstado === 'APROBADO') {
-      // Traer la orden completa para tener items, address y carrier
-      const order    = await getOrder(ordenId)
-      const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
-
-      // Notificar al seller que la venta fue confirmada
-      const sale = await postSale({
-        orderId:  ordenId,
-        sellerId,
-        total:    mpPayment.transaction_amount ?? pago.monto,
-      })
-
-      // Pasar la orden completa a shipping — ellos sacan dirección y carrier
-      const shipment = await postShipment(order)
-
-      await prisma.transaccion.upsert({
-        where:  { pagoId: pago.id },
-        update: { saleId: sale.id, shipmentId: shipment.id },
-        create: {
-          pagoId:     pago.id,
-          metodo:     mpPayment.payment_method_id ?? 'mercadopago',
-          saleId:     sale.id,
-          shipmentId: shipment.id,
+    // ── Guard: sin credenciales de MP, simulamos el flujo para dev ──────────
+    if (!process.env.MP_ACCESS_TOKEN) {
+      const pago = await prisma.pago.create({
+        data: {
+          ordenId:      orderId,
+          userId:       userId,
+          monto:        order.total,
+          estado:       'PENDIENTE',
+          preferenceId: 'mock-no-mp',
         },
       })
+      return NextResponse.json({ pagoId: pago.id, init_point: null })
     }
+    // ────────────────────────────────────────────────────────────────────────
 
-    // Siempre 200 — si MP recibe 4xx/5xx reintenta durante horas
-    return NextResponse.json({ received: true })
+    const { MercadoPagoConfig, Preference } = await import('mercadopago')
+
+    const client = new MercadoPagoConfig({
+      accessToken: process.env.MP_ACCESS_TOKEN,
+    })
+
+    const preference = await new Preference(client).create({
+      body: {
+        external_reference: orderId,
+        items: order.items.map((item) => ({
+          id:          item.name,
+          title:       item.name,
+          quantity:    item.quantity,
+          unit_price:  item.price,
+          currency_id: 'ARS',
+        })),
+        back_urls: {
+          success: `${process.env.NEXT_PUBLIC_URL}/pago/exitoso`,
+          failure: `${process.env.NEXT_PUBLIC_URL}/pago/error`,
+          pending: `${process.env.NEXT_PUBLIC_URL}/pago/pendiente`,
+        },
+        auto_return:      'approved',
+        notification_url: `${process.env.NEXT_PUBLIC_URL}/api/payments/webhook`,
+      },
+    })
+
+    const pago = await prisma.pago.create({
+      data: {
+        ordenId:      orderId,
+        userId:       userId,
+        monto:        order.total,
+        estado:       'PENDIENTE',
+        preferenceId: preference.id!,
+      },
+    })
+
+    return NextResponse.json({
+      pagoId:     pago.id,
+      init_point: preference.init_point,
+    })
 
   } catch (error) {
-    console.error('Error en webhook:', error)
-    return NextResponse.json({ received: true })
+    console.error('Error en POST /api/payments:', error)
+    return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

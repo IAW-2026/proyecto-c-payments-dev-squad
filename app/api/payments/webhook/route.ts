@@ -65,19 +65,8 @@ export async function POST(req: NextRequest) {
         total:    mpPayment.transaction_amount ?? pago.monto,
       })
 
-      // Crear el envío con los datos reales de la orden
-      const shipment = await postShipment({
-        orderId:  ordenId,
-        buyerId:  pago.userId,
-        sellerId,
-        items:    order.items.map(i => ({ productId: i.name, quantity: i.quantity })),
-        address: {
-          street: order.address,
-          city:   '',
-          zip:    '',
-        },
-        carrier: order.carrier,
-      })
+      // Pasar la orden completa a shipping — ellos sacan dirección y carrier
+      const shipment = await postShipment(order)
 
       await prisma.transaccion.upsert({
         where:  { pagoId: pago.id },
