@@ -7,7 +7,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { prisma } from '@/lib/db'
-import { getSeller, postSale } from '@/lib/services/sellerApp'
+import { postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
 import { getOrder } from '@/lib/services/buyerApp'
 
@@ -24,26 +24,44 @@ const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
+    const { searchParams } = new URL(req.url)
 
-    if (body.type !== 'payment') {
+    // MP manda el ID en dos lugares distintos según el formato
+    const mpPaymentId =
+      body.data?.id ||         // formato nuevo: { type: "payment", data: { id } }
+      searchParams.get('id')   // formato viejo: ?id=xxx&topic=payment
+
+    const type = body.type || searchParams.get('topic')
+
+    // Solo nos interesa el evento de pago, ignorar merchant_order y otros
+    if (type !== 'payment') {
       return NextResponse.json({ received: true })
     }
 
-    const mpPaymentId = body.data?.id
     if (!mpPaymentId) {
       return NextResponse.json({ error: 'Sin payment id' }, { status: 400 })
     }
 
     const mpPayment   = await new Payment(client).get({ id: mpPaymentId })
-    const ordenId     = mpPayment.external_reference
     const nuevoEstado = estadoMap[mpPayment.status ?? ''] ?? 'PENDIENTE'
+    const ordenId     = mpPayment.external_reference
 
     if (!ordenId) {
       return NextResponse.json({ error: 'Sin external_reference' }, { status: 400 })
     }
 
-    const pago = await prisma.pago.findFirst({ where: { ordenId } })
-
+    // preference_id existe en runtime aunque el tipo del SDK no lo declare
+    const preferenceId = (mpPayment as any).preference_id as string | undefined
+    console.log('[webhook] preferenceId de MP:', preferenceId)
+    console.log('[webhook] ordenId:', ordenId)
+    console.log('[webhook] status MP:', mpPayment.status)
+    const pago = await prisma.pago.findFirst({
+      where: preferenceId
+        ? { preferenceId }
+        : { ordenId },
+      orderBy: { createdAt: 'desc' }, // 👈 agregá esto
+    })
+    console.log('[webhook] pago encontrado:', pago?.id, '| preferenceId en DB:', pago?.preferenceId)
     if (!pago) {
       return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
     }

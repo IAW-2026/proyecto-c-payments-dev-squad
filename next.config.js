@@ -4,6 +4,7 @@ const nextConfig = {
   env: {
     DATABASE_URL: process.env.DATABASE_URL,
   },
+  allowedDevOrigins: ['mayflower-recipient-overcome.ngrok-free.dev'],
 }
 
 module.exports = nextConfig

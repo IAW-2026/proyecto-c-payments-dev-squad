@@ -41,13 +41,17 @@ export async function POST(req: NextRequest) {
     const preference = await new Preference(client).create({
       body: {
         external_reference: orderId,
-        items: order.items.map((item) => ({
-          id:          item.name,
-          title:       item.name,
-          quantity:    item.quantity,
-          unit_price:  item.price,
-          currency_id: 'ARS',
-        })),
+        items: [
+          {
+            id:          orderId,
+            title:       order.items.length === 1
+                           ? order.items[0].name
+                           : `Orden ${orderId.slice(0, 8)}`,
+            quantity:    1,
+            unit_price:  order.total,
+            currency_id: 'ARS',
+          },
+        ],
         back_urls: {
           success: `${process.env.NEXT_PUBLIC_URL}/pago/exitoso`,
           failure: `${process.env.NEXT_PUBLIC_URL}/pago/error`,

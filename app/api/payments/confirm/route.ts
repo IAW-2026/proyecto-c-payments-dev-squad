@@ -23,6 +23,7 @@ export async function GET(req: NextRequest) {
         ],
       },
       include: { transaccion: true },
+       orderBy: { createdAt: 'desc' },
     })
 
     if (!pago) {
