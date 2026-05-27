@@ -38,14 +38,21 @@ enum EstadoPago {
   APROBADO
   RECHAZADO
 }
+enum EstadoDisputa {
+  ABIERTA
+  RESUELTA
+  PERDIDA
+}
 
 model Disputa {
-  id      String   @id @default(uuid())
+  id      String         @id @default(uuid())
   pagoId  String
   userId  String
   motivo  String
-  fecha   DateTime @default(now())
-  pago    Pago     @relation(fields: [pagoId], references: [id])
+  estado  EstadoDisputa  @default(ABIERTA)
+  origen  String         @default("usuario") // "usuario" | "chargeback"
+  fecha   DateTime       @default(now())
+  pago    Pago           @relation(fields: [pagoId], references: [id])
 
   @@map("disputas")
 }
