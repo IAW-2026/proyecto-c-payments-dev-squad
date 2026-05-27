@@ -1,29 +1,33 @@
-//POST /disputes
-
+// app/api/disputes/route.ts
+// POST /api/disputes — el comprador abre una disputa
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/db'
 
 export async function POST(req: NextRequest) {
   try {
-    const { pago_id, user_id, motivo } = await req.json()
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
 
-    if (!pago_id || !user_id || !motivo) {
+    const { pagoId, motivo } = await req.json()
+
+    if (!pagoId || !motivo) {
       return NextResponse.json(
-        { error: 'pago_id, user_id y motivo son requeridos' },
+        { error: 'pagoId y motivo son requeridos' },
         { status: 400 }
       )
     }
 
-    // 1. Verificar que el pago existe y pertenece al usuario
-    const pago = await prisma.pago.findUnique({
-      where: { id: pago_id }
-    })
+    // Verificar que el pago existe y le pertenece al usuario
+    const pago = await prisma.pago.findUnique({ where: { id: pagoId } })
 
     if (!pago) {
       return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
     }
 
-    if (pago.userId !== user_id) {
+    if (pago.userId !== userId) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
@@ -34,17 +38,31 @@ export async function POST(req: NextRequest) {
       )
     }
 
-    // 2. Por ahora logueamos la disputa (podés agregar modelo Disputa a Prisma después)
-    console.log('Nueva disputa:', { pago_id, user_id, motivo })
+    // Verificar que no haya una disputa abierta para este pago
+    const disputaExistente = await prisma.disputa.findFirst({
+      where: { pagoId, estado: 'ABIERTA' },
+    })
 
-    return NextResponse.json({
-      message: 'Disputa creada correctamente',
-      pago_id,
-      motivo,
-    }, { status: 201 })
+    if (disputaExistente) {
+      return NextResponse.json(
+        { error: 'Ya existe una disputa abierta para este pago' },
+        { status: 409 }
+      )
+    }
+
+    const disputa = await prisma.disputa.create({
+      data: {
+        pagoId,
+        userId,
+        motivo,
+        origen: 'usuario',
+      },
+    })
+
+    return NextResponse.json(disputa, { status: 201 })
 
   } catch (error) {
-    console.error('Error en POST /disputes:', error)
+    console.error('Error en POST /api/disputes:', error)
     return NextResponse.json({ error: 'Error interno' }, { status: 500 })
   }
 }

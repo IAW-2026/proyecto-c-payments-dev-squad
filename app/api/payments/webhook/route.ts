@@ -71,6 +71,27 @@ export async function POST(req: NextRequest) {
       data:  { estado: nuevoEstado },
     })
 
+    // 👇 Chargeback — MP manda status "charged_back" o "in_process"
+    if (mpPayment.status === 'charged_back' || mpPayment.status === 'in_process') {
+      const disputaExistente = await prisma.disputa.findFirst({
+        where: { pagoId: pago.id, origen: 'chargeback' },
+      })
+
+      if (!disputaExistente) {
+        await prisma.disputa.create({
+          data: {
+            pagoId: pago.id,
+            userId: pago.userId,
+            motivo: mpPayment.status === 'charged_back'
+              ? 'Contracargo iniciado por el comprador'
+              : 'Pago en revisión por MercadoPago',
+            origen: 'chargeback',
+          },
+        })
+      }
+    }
+
+
     if (nuevoEstado === 'APROBADO') {
       // Traer la orden completa para tener items, address y carrier
       const order    = await getOrder(ordenId)

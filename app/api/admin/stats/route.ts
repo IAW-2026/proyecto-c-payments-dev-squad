@@ -117,6 +117,8 @@ export async function GET() {
       pagoId:  d.pagoId,
       userId:  d.userId,
       motivo:  d.motivo,
+      estado:  d.estado,   
+      origen:  d.origen,  
       fecha:   d.fecha,
       monto:   d.pago.monto,
       ordenId: d.pago.ordenId,
