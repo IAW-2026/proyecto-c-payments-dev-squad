@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       where: preferenceId
         ? { preferenceId }
         : { ordenId },
-      orderBy: { createdAt: 'desc' }, // 👈 agregá esto
+      orderBy: { createdAt: 'desc' }, // por las dudas hay varios pagos, agarramos el más reciente
     })
     console.log('[webhook] pago encontrado:', pago?.id, '| preferenceId en DB:', pago?.preferenceId)
     if (!pago) {
