@@ -53,7 +53,7 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
       const res = await fetch('/api/payments', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ orderId, userId }),
+        body:    JSON.stringify({ orderId }),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al iniciar el pago')

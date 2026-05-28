@@ -1,9 +1,6 @@
 // GET /api/payments/confirm?payment_id=xxx&order_id=xxx
-// Llamado desde pago/exito/page.tsx para armar el resumen post-pago.
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
-import * as sellerApp from '@/lib/services/sellerApp'
-import { getShipment } from '@/lib/services/shippingApp'
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
@@ -23,7 +20,7 @@ export async function GET(req: NextRequest) {
         ],
       },
       include: { transaccion: true },
-       orderBy: { createdAt: 'desc' },
+      orderBy: { createdAt: 'desc' },
     })
 
     if (!pago) {
@@ -37,20 +34,19 @@ export async function GET(req: NextRequest) {
       )
     }
 
-    const sale     = await (sellerApp as any).getSale(pago.transaccion!.saleId)
-    const shipment = await getShipment(pago.ordenId)
+    if (!pago.transaccion) {
+      return NextResponse.json(
+        { error: 'Transacción aún no procesada' },
+        { status: 402 }
+      )
+    }
 
     return NextResponse.json({
+      pagoId:     pago.id,
       orderId:    pago.ordenId,
-      saleId:     sale.id,
-      shipmentId: shipment.id,
+      saleId:     pago.transaccion.saleId,
+      shipmentId: pago.transaccion.shipmentId,
       total:      pago.monto,
-      items:      sale.items,
-      shipment: {
-        status:            shipment.status,
-        estimatedDelivery: shipment.estimatedDelivery,
-        carrier:           shipment.carrier,
-      },
     })
 
   } catch (error) {

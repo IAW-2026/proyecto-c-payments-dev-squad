@@ -5,20 +5,25 @@
 //   npx ngrok http 3000
 //   MP NO TIENE ACCESO A LOCALHOST — guardá la URL de ngrok en .env como NEXT_PUBLIC_URL
 import { NextRequest, NextResponse } from 'next/server'
-import { MercadoPagoConfig, Payment } from 'mercadopago'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
 import { getOrder } from '@/lib/services/buyerApp'
 
-const client = new MercadoPagoConfig({
-  accessToken: process.env.MP_ACCESS_TOKEN!,
-})
-
 const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
-  approved: 'APROBADO',
-  rejected: 'RECHAZADO',
-  pending:  'PENDIENTE',
+  approved:     'APROBADO',
+  rejected:     'RECHAZADO',
+  pending:      'PENDIENTE',
+  in_process:   'PENDIENTE',
+  charged_back: 'RECHAZADO',
+}
+
+async function getMPPayment(id: string) {
+  const res = await fetch(`https://api.mercadopago.com/v1/payments/${id}`, {
+    headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` },
+  })
+  if (!res.ok) throw new Error(`MP API error: ${res.status}`)
+  return res.json()
 }
 
 export async function POST(req: NextRequest) {
@@ -42,26 +47,29 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sin payment id' }, { status: 400 })
     }
 
-    const mpPayment   = await new Payment(client).get({ id: mpPaymentId })
-    const nuevoEstado = estadoMap[mpPayment.status ?? ''] ?? 'PENDIENTE'
-    const ordenId     = mpPayment.external_reference
+    // Fetch directo a la API de MP — el SDK omite preference_id en el parseo
+    const mpPayment    = await getMPPayment(mpPaymentId)
+    const nuevoEstado  = estadoMap[mpPayment.status ?? ''] ?? 'PENDIENTE'
+    const ordenId      = mpPayment.external_reference
+    const preferenceId = mpPayment.preference_id as string | undefined
+
+    console.log('[webhook] preferenceId:', preferenceId)
+    console.log('[webhook] ordenId:', ordenId)
+    console.log('[webhook] status MP:', mpPayment.status)
 
     if (!ordenId) {
       return NextResponse.json({ error: 'Sin external_reference' }, { status: 400 })
     }
 
-    // preference_id existe en runtime aunque el tipo del SDK no lo declare
-    const preferenceId = (mpPayment as any).preference_id as string | undefined
-    console.log('[webhook] preferenceId de MP:', preferenceId)
-    console.log('[webhook] ordenId:', ordenId)
-    console.log('[webhook] status MP:', mpPayment.status)
     const pago = await prisma.pago.findFirst({
       where: preferenceId
-        ? { preferenceId }
-        : { ordenId },
-      orderBy: { createdAt: 'desc' }, // por las dudas hay varios pagos, agarramos el más reciente
+        ? { preferenceId }          // búsqueda exacta — no hay colisiones
+        : { ordenId },              // fallback si no viene (no debería pasar)
+      orderBy: { createdAt: 'desc' },
     })
+
     console.log('[webhook] pago encontrado:', pago?.id, '| preferenceId en DB:', pago?.preferenceId)
+
     if (!pago) {
       return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
     }
@@ -71,7 +79,7 @@ export async function POST(req: NextRequest) {
       data:  { estado: nuevoEstado },
     })
 
-    // 👇 Chargeback — MP manda status "charged_back" o "in_process"
+    // Chargeback — MP manda status "charged_back" o "in_process"
     if (mpPayment.status === 'charged_back' || mpPayment.status === 'in_process') {
       const disputaExistente = await prisma.disputa.findFirst({
         where: { pagoId: pago.id, origen: 'chargeback' },
@@ -91,20 +99,16 @@ export async function POST(req: NextRequest) {
       }
     }
 
-
     if (nuevoEstado === 'APROBADO') {
-      // Traer la orden completa para tener items, address y carrier
       const order    = await getOrder(ordenId)
       const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
 
-      // Notificar al seller que la venta fue confirmada
       const sale = await postSale({
         orderId:  ordenId,
         sellerId,
         total:    mpPayment.transaction_amount ?? pago.monto,
       })
 
-      // Pasar la orden completa a shipping — ellos sacan dirección y carrier
       const shipment = await postShipment(order)
 
       await prisma.transaccion.upsert({

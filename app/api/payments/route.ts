@@ -1,23 +1,26 @@
-// app/api/payments/route.ts
-// POST /api/payments — crea la preferencia de MP y devuelve init_point
 import { NextRequest, NextResponse } from 'next/server'
+import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/db'
 import { getOrder } from '@/lib/services/buyerApp'
 
 export async function POST(req: NextRequest) {
   try {
-    const { orderId, userId } = await req.json()
+    const { userId } = await auth()
+    if (!userId) {
+      return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+    }
 
-    if (!orderId || !userId) {
+    const { orderId } = await req.json()
+
+    if (!orderId) {
       return NextResponse.json(
-        { error: 'orderId y userId son requeridos' },
+        { error: 'orderId es requerido' },
         { status: 400 }
       )
     }
 
     const order = await getOrder(orderId)
 
-    // ── Guard: sin credenciales de MP, simulamos el flujo para dev ──────────
     if (!process.env.MP_ACCESS_TOKEN) {
       const pago = await prisma.pago.create({
         data: {
@@ -30,7 +33,6 @@ export async function POST(req: NextRequest) {
       })
       return NextResponse.json({ pagoId: pago.id, init_point: null })
     }
-    // ────────────────────────────────────────────────────────────────────────
 
     const { MercadoPagoConfig, Preference } = await import('mercadopago')
 
@@ -43,12 +45,12 @@ export async function POST(req: NextRequest) {
         external_reference: orderId,
         items: [
           {
-            id:          orderId,
-            title:       order.items.length === 1
-                           ? order.items[0].name
-                           : `Orden ${orderId.slice(0, 8)}`,
-            quantity:    1,
-            unit_price:  order.total,
+            id:         orderId,
+            title:      order.items.length === 1
+                          ? order.items[0].name
+                          : `Orden ${orderId.slice(0, 8)}`,
+            quantity:   1,
+            unit_price: order.total,
             currency_id: 'ARS',
           },
         ],
