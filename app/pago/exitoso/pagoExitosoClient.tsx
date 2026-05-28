@@ -74,39 +74,39 @@ export default function PagoExitosoClient() {
   }
 
   if (estado === 'cargando') return (
-    <main className="min-h-screen flex items-center justify-center bg-black">
-      <div className="text-center p-8 rounded-xl border border-gray-600 max-w-md w-full bg-gray-900">
-        <div className="text-5xl mb-4">⏳</div>
-        <h1 className="text-xl font-bold text-gray-300 mb-2">Confirmando tu pago...</h1>
-        <p className="text-gray-500 text-sm">Intento {intentos + 1} de 10</p>
+    <main className="min-h-screen flex items-center justify-center px-4" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="text-center p-6 sm:p-8 rounded-lg sm:rounded-xl border max-w-md w-full" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}>
+        <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">⏳</div>
+        <h1 className="text-lg sm:text-xl font-bold mb-1 sm:mb-2" style={{ color: 'var(--color-foreground)' }}>Confirmando tu pago...</h1>
+        <p className="text-xs sm:text-sm" style={{ color: 'var(--color-muted)' }}>Intento {intentos + 1} de 10</p>
       </div>
     </main>
   )
 
   if (estado === 'aprobado') return (
-    <main className="min-h-screen flex items-center justify-center bg-black">
-      <div className="text-center p-8 rounded-xl border border-green-500 max-w-md w-full bg-gray-900">
-        <div className="text-5xl mb-4">✅</div>
-        <h1 className="text-2xl font-bold text-green-400 mb-2">¡Pago aprobado!</h1>
-        <p className="text-gray-300 mb-6">
+    <main className="min-h-screen flex items-center justify-center px-4 py-8" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="text-center p-6 sm:p-8 rounded-lg sm:rounded-xl border max-w-md w-full" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-success)' }}>
+        <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">✅</div>
+        <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2" style={{ color: 'var(--color-success)' }}>¡Pago aprobado!</h1>
+        <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Tu compra fue procesada correctamente. En breve recibirás la confirmación.
         </p>
 
         {disputaOk && (
-          <p className="text-yellow-400 text-sm mb-4">
+          <p className="text-xs sm:text-sm mb-3 sm:mb-4 p-2 sm:p-3 rounded-lg" style={{ backgroundColor: 'var(--color-info-light)', color: 'var(--color-info)' }}>
             ✓ Disputa iniciada. El equipo la revisará a la brevedad.
           </p>
         )}
 
-        <div className="flex flex-col gap-3">
-          <Link href="/" className="bg-green-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-green-700 transition-colors">
+        <div className="flex flex-col gap-2 sm:gap-3">
+          <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
             Volver al inicio
           </Link>
 
           {!disputaOk && pagoId && (
             <button
               onClick={() => setModal(true)}
-              className="text-sm text-gray-500 hover:text-gray-300 transition-colors underline"
+              className="text-xs sm:text-sm transition-colors underline" style={{ color: 'var(--color-muted)' }}
             >
               ¿Tuviste un problema con tu compra? Iniciá una disputa
             </button>
@@ -117,15 +117,15 @@ export default function PagoExitosoClient() {
       {/* Modal disputa */}
       {modalAbierto && (
         <div
-          className="fixed inset-0 bg-black/70 flex items-center justify-center z-50"
+          className="fixed inset-0 flex items-center justify-center z-50 px-4" style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
           onClick={() => setModal(false)}
         >
           <div
-            className="bg-gray-900 border border-gray-700 rounded-xl p-6 max-w-sm w-full mx-4"
+            className="rounded-lg sm:rounded-xl p-4 sm:p-6 max-w-sm w-full" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
             onClick={e => e.stopPropagation()}
           >
-            <h2 className="text-lg font-bold text-white mb-2">Iniciar disputa</h2>
-            <p className="text-gray-400 text-sm mb-4">
+            <h2 className="text-base sm:text-lg font-bold mb-1 sm:mb-2" style={{ color: 'var(--color-foreground)' }}>Iniciar disputa</h2>
+            <p className="text-xs sm:text-sm mb-3 sm:mb-4" style={{ color: 'var(--color-muted)' }}>
               Describí el problema con tu compra. El equipo lo revisará.
             </p>
             <textarea
@@ -133,19 +133,28 @@ export default function PagoExitosoClient() {
               onChange={e => setMotivo(e.target.value)}
               placeholder="Ej: No recibí el producto, el artículo llegó dañado..."
               rows={4}
-              className="w-full bg-gray-800 border border-gray-600 rounded-lg p-3 text-white text-sm resize-none focus:outline-none focus:border-gray-400"
+              className="w-full rounded-lg p-2 sm:p-3 text-xs sm:text-sm resize-none focus:outline-none border" style={{ 
+                backgroundColor: 'var(--color-surface-alt)', 
+                borderColor: 'var(--color-border)',
+                color: 'var(--color-foreground)'
+              }}
             />
-            <div className="flex gap-3 mt-4">
+            <div className="flex gap-2 sm:gap-3 mt-3 sm:mt-4">
               <button
                 onClick={() => setModal(false)}
-                className="flex-1 py-2 rounded-lg border border-gray-600 text-gray-400 text-sm hover:border-gray-400 transition-colors"
+                className="flex-1 py-2 rounded-lg border text-xs sm:text-sm font-medium transition-colors" style={{
+                  borderColor: 'var(--color-border)',
+                  color: 'var(--color-muted)'
+                }}
               >
                 Cancelar
               </button>
               <button
                 onClick={abrirDisputa}
                 disabled={!motivo.trim() || enviando}
-                className="flex-1 py-2 rounded-lg bg-yellow-600 text-white text-sm font-medium hover:bg-yellow-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 py-2 rounded-lg text-xs sm:text-sm font-medium text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed" style={{
+                  backgroundColor: 'var(--color-info)'
+                }}
               >
                 {enviando ? 'Enviando...' : 'Enviar disputa'}
               </button>
@@ -157,14 +166,14 @@ export default function PagoExitosoClient() {
   )
 
   if (estado === 'pendiente') return (
-    <main className="min-h-screen flex items-center justify-center bg-black">
-      <div className="text-center p-8 rounded-xl border border-yellow-500 max-w-md w-full bg-gray-900">
-        <div className="text-5xl mb-4">⏳</div>
-        <h1 className="text-2xl font-bold text-yellow-400 mb-2">Pago en proceso</h1>
-        <p className="text-gray-300 mb-6">
+    <main className="min-h-screen flex items-center justify-center px-4 py-8" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="text-center p-6 sm:p-8 rounded-lg sm:rounded-xl border max-w-md w-full" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-info)' }}>
+        <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">⏳</div>
+        <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2" style={{ color: 'var(--color-info)' }}>Pago en proceso</h1>
+        <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Recibimos tu pago pero aún está siendo procesado. Te notificaremos cuando se confirme.
         </p>
-        <Link href="/" className="bg-yellow-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-yellow-700 transition-colors">
+        <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-info)', color: 'white' }}>
           Volver al inicio
         </Link>
       </div>
@@ -172,14 +181,14 @@ export default function PagoExitosoClient() {
   )
 
   return (
-    <main className="min-h-screen flex items-center justify-center bg-black">
-      <div className="text-center p-8 rounded-xl border border-red-500 max-w-md w-full bg-gray-900">
-        <div className="text-5xl mb-4">❌</div>
-        <h1 className="text-2xl font-bold text-red-400 mb-2">No pudimos confirmar tu pago</h1>
-        <p className="text-gray-300 mb-6">
+    <main className="min-h-screen flex items-center justify-center px-4 py-8" style={{ backgroundColor: 'var(--color-background)' }}>
+      <div className="text-center p-6 sm:p-8 rounded-lg sm:rounded-xl border max-w-md w-full" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-danger)' }}>
+        <div className="text-4xl sm:text-5xl mb-3 sm:mb-4">❌</div>
+        <h1 className="text-xl sm:text-2xl font-bold mb-1 sm:mb-2" style={{ color: 'var(--color-danger)' }}>No pudimos confirmar tu pago</h1>
+        <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Si realizaste el pago, no te preocupes — lo procesaremos igual. Revisá tu email.
         </p>
-        <Link href="/" className="bg-red-600 text-white px-6 py-2 rounded-lg font-medium hover:bg-red-700 transition-colors">
+        <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base text-white transition-colors" style={{ backgroundColor: 'var(--color-danger)' }}>
           Volver al inicio
         </Link>
       </div>

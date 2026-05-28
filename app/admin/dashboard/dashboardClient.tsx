@@ -90,141 +90,151 @@ export default function DashboardClient() {
   ]
 
   return (
-    <div style={{ padding: '32px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
+    <div style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
+      <style>{`
+        @media (min-width: 640px) {
+          #dashboard-wrapper {
+            padding: 32px;
+            gap: 24px;
+          }
+        }
+      `}</style>
+      <div id="dashboard-wrapper" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
 
-      {/* Header */}
-      <div>
-        <h1 style={{ fontSize: '24px', fontWeight: 900, color: 'var(--color-foreground)', margin: 0 }}>
-          Dashboard
-        </h1>
-        <p style={{ fontSize: '14px', color: 'var(--color-muted)', marginTop: '4px' }}>
-          Resumen de actividad de la plataforma.
-        </p>
-      </div>
-
-      {/* KPI cards */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
-        {kpis.map(kpi => (
-          <div
-            key={kpi.label}
-            style={{
-              backgroundColor: 'var(--color-surface)',
-              border:          '1px solid var(--color-border)',
-              borderRadius:    '16px',
-              padding:         '20px',
-            }}
-          >
-            <div style={{ fontSize: '24px', marginBottom: '8px' }}>{kpi.icon}</div>
-            <p style={{ fontSize: '12px', color: 'var(--color-muted)', margin: 0 }}>{kpi.label}</p>
-            <p style={{
-              fontSize:   '22px',
-              fontWeight: 900,
-              margin:     '4px 0 0',
-              color: (kpi as any).danger
-                ? 'var(--color-danger)'
-                : kpi.highlight
-                  ? 'var(--color-success)'
-                  : 'var(--color-foreground)',
-            }}>
-              {kpi.value}
-            </p>
-          </div>
-        ))}
-      </div>
-
-      {/* Chart */}
-      <div
-        style={{
-          backgroundColor: 'var(--color-surface)',
-          border:          '1px solid var(--color-border)',
-          borderRadius:    '16px',
-          padding:         '24px',
-        }}
-      >
-        {/* Period selector */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
-          <p style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-foreground)', margin: 0 }}>
-            Monto procesado — {PERIOD_LABELS[period]}
+        {/* Header */}
+        <div>
+          <h1 style={{ fontSize: '22px', fontWeight: 900, color: 'var(--color-foreground)', margin: 0 }}>
+            Dashboard
+          </h1>
+          <p style={{ fontSize: '12px', color: 'var(--color-muted)', marginTop: '4px' }}>
+            Resumen de actividad de la plataforma.
           </p>
-          <div
-            style={{
-              display:         'flex',
-              gap:             '4px',
-              padding:         '4px',
-              borderRadius:    '12px',
-              backgroundColor: 'var(--color-surface-alt)',
-              border:          '1px solid var(--color-border)',
-            }}
-          >
-            {(['7d', '30d', '1y'] as Period[]).map(p => (
-              <button
-                key={p}
-                onClick={() => setPeriod(p)}
-                style={{
-                  padding:         '6px 14px',
-                  borderRadius:    '8px',
-                  border:          'none',
-                  fontSize:        '13px',
-                  fontWeight:      600,
-                  cursor:          'pointer',
-                  backgroundColor: period === p ? 'var(--color-info)'      : 'transparent',
-                  color:           period === p ? 'var(--color-on-primary)' : 'var(--color-muted)',
-                  transition:      'all 0.15s ease',
-                }}
-              >
-                {p === '7d' ? '7D' : p === '30d' ? '30D' : '1A'}
-              </button>
-            ))}
-          </div>
         </div>
 
-        {chartData.length === 0 ? (
-          <div style={{ textAlign: 'center', padding: '40px', color: 'var(--color-muted)', fontSize: '14px' }}>
-            Sin datos para este período.
+        {/* KPI cards */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '12px' }}>
+          {kpis.map(kpi => (
+            <div
+              key={kpi.label}
+              style={{
+                backgroundColor: 'var(--color-surface)',
+                border:          '1px solid var(--color-border)',
+                borderRadius:    '12px',
+                padding:         '12px 16px',
+              }}
+            >
+              <div style={{ fontSize: '18px', marginBottom: '4px' }}>{kpi.icon}</div>
+              <p style={{ fontSize: '11px', color: 'var(--color-muted)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{kpi.label}</p>
+              <p style={{
+                fontSize:   '16px',
+                fontWeight: 900,
+                margin:     '4px 0 0',
+                color: (kpi as any).danger
+                  ? 'var(--color-danger)'
+                  : kpi.highlight
+                    ? 'var(--color-success)'
+                    : 'var(--color-foreground)',
+              }}>
+                {kpi.value}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Chart */}
+        <div
+          style={{
+            backgroundColor: 'var(--color-surface)',
+            border:          '1px solid var(--color-border)',
+            borderRadius:    '12px',
+            padding:         '16px 12px',
+          }}
+        >
+          {/* Period selector */}
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-foreground)', margin: 0 }}>
+              Monto procesado
+            </p>
+            <div
+              style={{
+                display:         'flex',
+                gap:             '2px',
+                padding:         '3px',
+                borderRadius:    '8px',
+                backgroundColor: 'var(--color-surface-alt)',
+                border:          '1px solid var(--color-border)',
+              }}
+            >
+              {(['7d', '30d', '1y'] as Period[]).map(p => (
+                <button
+                  key={p}
+                  onClick={() => setPeriod(p)}
+                  style={{
+                    padding:         '4px 10px',
+                    borderRadius:    '6px',
+                    border:          'none',
+                    fontSize:        '11px',
+                    fontWeight:      600,
+                    cursor:          'pointer',
+                    backgroundColor: period === p ? 'var(--color-info)'      : 'transparent',
+                    color:           period === p ? 'var(--color-on-primary)' : 'var(--color-muted)',
+                    transition:      'all 0.15s ease',
+                  }}
+                >
+                  {p === '7d' ? '7D' : p === '30d' ? '30D' : '1A'}
+                </button>
+              ))}
+            </div>
           </div>
-        ) : (
-          <ResponsiveContainer width="100%" height={280}>
-            <AreaChart data={chartData} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
-              <defs>
-                <linearGradient id="gradMonto" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%"  stopColor="var(--color-info)" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="var(--color-info)" stopOpacity={0}   />
-                </linearGradient>
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
-              <XAxis
-                dataKey="fecha"
-                tick={{ fontSize: 12, fill: 'var(--color-muted)' }}
-                axisLine={false}
-                tickLine={false}
-              />
-              <YAxis
-                tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
-                tick={{ fontSize: 12, fill: 'var(--color-muted)' }}
-                axisLine={false}
-                tickLine={false}
-                width={52}
-              />
-              <Tooltip
-                formatter={(v: number) => [`$ ${v.toLocaleString('es-AR')}`, 'Monto']}
-                contentStyle={{
-                  backgroundColor: 'var(--color-surface)',
-                  border:          '1px solid var(--color-border)',
-                  borderRadius:    '10px',
-                  fontSize:        '13px',
-                  color:           'var(--color-foreground)',
-                }}
-              />
-              <Area
-                type="monotone"
-                dataKey="monto"
-                stroke="var(--color-info)"
-                strokeWidth={2}
-                fill="url(#gradMonto)"
-              />
-            </AreaChart>
-          </ResponsiveContainer>
-        )}
+
+          {chartData.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '24px 12px', color: 'var(--color-muted)', fontSize: '13px' }}>
+              Sin datos para este período.
+            </div>
+          ) : (
+            <ResponsiveContainer width="100%" height={240}>
+              <AreaChart data={chartData} margin={{ top: 4, right: 4, left: -30, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="gradMonto" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%"  stopColor="var(--color-info)" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="var(--color-info)" stopOpacity={0}   />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--color-border)" />
+                <XAxis
+                  dataKey="fecha"
+                  tick={{ fontSize: 11, fill: 'var(--color-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                />
+                <YAxis
+                  tickFormatter={v => `$${(v / 1000).toFixed(0)}k`}
+                  tick={{ fontSize: 10, fill: 'var(--color-muted)' }}
+                  axisLine={false}
+                  tickLine={false}
+                  width={40}
+                />
+                <Tooltip
+                  formatter={(v: number) => [`$ ${v.toLocaleString('es-AR')}`, 'Monto']}
+                  contentStyle={{
+                    backgroundColor: 'var(--color-surface)',
+                    border:          '1px solid var(--color-border)',
+                    borderRadius:    '8px',
+                    fontSize:        '12px',
+                    color:           'var(--color-foreground)',
+                  }}
+                />
+                <Area
+                  type="monotone"
+                  dataKey="monto"
+                  stroke="var(--color-info)"
+                  strokeWidth={2}
+                  fill="url(#gradMonto)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          )}
+        </div>
       </div>
     </div>
   )

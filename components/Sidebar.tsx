@@ -29,8 +29,16 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
   const { resolved }          = useTheme()
   const [mounted, setMounted] = useState(false)
   const [open, setOpen]       = useState(false)
+  const [isMobile, setIsMobile] = useState(false)
 
-  useEffect(() => setMounted(true), [])
+  useEffect(() => {
+    setMounted(true)
+    // Detectar mobile al montar y en cambios de ventana
+    const checkMobile = () => setIsMobile(window.innerWidth < 768)
+    checkMobile()
+    window.addEventListener('resize', checkMobile)
+    return () => window.removeEventListener('resize', checkMobile)
+  }, [])
 
   const userItems: NavItem[] = [
     { href: buyerAppUrl, label: 'Inicio', icon: '🏠', external: buyerAppUrl.startsWith('http') },
@@ -46,28 +54,37 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
 
   return (
     <>
-      {/* Overlay — cierra el sidebar al tocar fuera */}
-      {open && (
+      {/* Overlay — cierra el sidebar al tocar fuera (solo visible en mobile) */}
+      {open && isMobile && (
         <div
-          style={{ position: 'fixed', inset: 0, zIndex: 20 }}
+          style={{ 
+            position: 'fixed', 
+            inset: 0, 
+            zIndex: 20,
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+            animation: 'fadeIn 0.2s ease-out',
+          }}
           onClick={() => setOpen(false)}
         />
       )}
 
       <aside
         style={{
-          position:        'fixed',
+          position:        isMobile ? 'fixed' : 'fixed',
           top:             0,
           left:            0,
           height:          '100vh',
-          width:           open ? '224px' : '64px',
+          width:           isMobile 
+            ? (open ? '100%' : '0')
+            : (open ? '224px' : '64px'),
           zIndex:          30,
           backgroundColor: 'var(--color-surface)',
-          borderRight:     '1px solid var(--color-border)',
+          borderRight:     isMobile ? 'none' : '1px solid var(--color-border)',
           display:         'flex',
           flexDirection:   'column',
-          transition:      'width 0.2s ease',
+          transition:      'width 0.3s ease, transform 0.3s ease',
           overflow:        'hidden',
+          boxShadow:       isMobile && open ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
         }}
       >
 
@@ -77,21 +94,21 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
           alignItems:   'center',
           gap:          '10px',
           padding:      '12px',
-          minHeight:    '64px',
-          borderBottom: '1px solid var(--color-border)',
+          minHeight:    isMobile ? 'auto' : '64px',
+          borderBottom: isMobile && !open ? 'none' : '1px solid var(--color-border)',
         }}>
           <button
             onClick={() => setOpen(o => !o)}
             aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
             style={{
               flexShrink:      0,
-              width:           '40px',
-              height:          '40px',
+              width:           isMobile ? '44px' : '40px',
+              height:          isMobile ? '44px' : '40px',
               borderRadius:    '10px',
               border:          '1px solid var(--color-border)',
               backgroundColor: 'var(--color-surface-alt)',
               color:           'var(--color-foreground)',
-              fontSize:        '18px',
+              fontSize:        isMobile ? '20px' : '18px',
               cursor:          'pointer',
               display:         'flex',
               alignItems:      'center',

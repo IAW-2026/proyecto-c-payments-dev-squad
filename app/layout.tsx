@@ -17,13 +17,14 @@ export default async function RootLayout({
     <ClerkProvider>
       <html lang="es" suppressHydrationWarning>
         <head>
+          <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
         </head>
         <body>
           <ThemeProvider>
             <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
               <Sidebar role={role} />
-              {/* paddingLeft = ancho del sidebar colapsado (64px) */}
-              <main style={{ paddingLeft: '64px', minHeight: '100vh' }}>
+              {/* paddingLeft responsive: 0 en mobile, 64px en desktop */}
+              <main style={{ minHeight: '100vh' }} className="md:pl-16">
                 {children}
               </main>
             </div>
