@@ -88,8 +88,8 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
             <img
               src={!mounted || resolved === 'light'
-                ? '/logos/zapasya-light.png'
-                : '/logos/zapasya-dark.png'}
+                ? '/logos/zapasya-light.webp'
+                : '/logos/zapasya-dark.webp'}
               alt="ZapasYa"
               className="h-8 sm:h-10 w-auto"
             />

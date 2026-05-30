@@ -149,8 +149,8 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
           }}>
             <img
               src={!mounted || resolved === 'light'
-                ? '/logos/zapasya-light.png'
-                : '/logos/zapasya-dark.png'}
+                ? '/logos/zapasya-light.webp'
+                : '/logos/zapasya-dark.webp'}
               alt="ZapasYa"
               style={{ height: '32px', width: 'auto' }}
             />

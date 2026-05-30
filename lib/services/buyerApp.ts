@@ -39,12 +39,12 @@ const MOCK_ORDER: Order = {
   carrier:  'MAIL',
   items: [
     {
-      name:     'Zapatillas UltraSprint',
+      name:     'Zapatillas Jordan',
       price:    18999,
       quantity: 1,
       size:     42,
       color:    'Negro',
-      imageUrl: 'https://images.unsplash.com/photo-1600185360814-bae279f266f7?auto=format&fit=crop&w=200&q=80',
+      imageUrl: '/zapatillas/zapatillas-jordan.webp',
     },
   ],
 }
