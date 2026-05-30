@@ -6,7 +6,7 @@ import {
   Tooltip, ResponsiveContainer,
 } from 'recharts'
 
-type Period = '7d' | '30d' | '1y'
+type Period = '7d' | '30d'
 
 interface ChartPoint { fecha: string; monto: number }
 
@@ -27,7 +27,6 @@ interface Stats {
 const PERIOD_LABELS: Record<Period, string> = {
   '7d': 'Últimos 7 días',
   '30d': 'Últimos 30 días',
-  '1y': 'Último año',
 }
 
 export default function DashboardClient() {
@@ -45,8 +44,7 @@ export default function DashboardClient() {
 
   const chartData = stats
     ? period === '7d'  ? stats.charts.ultimos7dias
-    : period === '30d' ? stats.charts.ultimos30dias
-    :                    stats.charts.ultimoAnio
+    :                    stats.charts.ultimos30dias
     : []
 
   if (loading) return (
@@ -165,7 +163,7 @@ export default function DashboardClient() {
                 border:          '1px solid var(--color-border)',
               }}
             >
-              {(['7d', '30d', '1y'] as Period[]).map(p => (
+              {(['7d', '30d'] as Period[]).map(p => (
                 <button
                   key={p}
                   onClick={() => setPeriod(p)}
@@ -181,7 +179,7 @@ export default function DashboardClient() {
                     transition:      'all 0.15s ease',
                   }}
                 >
-                  {p === '7d' ? '7D' : p === '30d' ? '30D' : '1A'}
+                  {p === '7d' ? '7D' : '30D'}
                 </button>
               ))}
             </div>

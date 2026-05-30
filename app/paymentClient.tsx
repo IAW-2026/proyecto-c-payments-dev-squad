@@ -246,15 +246,6 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                 className="rounded-lg sm:rounded-2xl p-3 sm:p-4 text-center border"
                 style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
               >
-                <p className="text-xs mb-0.5 sm:mb-1" style={{ color: 'var(--color-muted)' }}>Interés</p>
-                <p className="font-black text-xs sm:text-sm" style={{ color: 'var(--color-success)' }}>
-                  Sin Interés
-                </p>
-              </div>
-              <div
-                className="rounded-lg sm:rounded-2xl p-3 sm:p-4 text-center border"
-                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
-              >
                 <p className="text-xs mb-0.5 sm:mb-1" style={{ color: 'var(--color-muted)' }}>Entrega</p>
                 <p className="font-black text-xs sm:text-sm" style={{ color: 'var(--color-foreground)' }}>
                   {order.carrier === 'MAIL' ? '🚚 Envío' : '🏪 Retiro'}

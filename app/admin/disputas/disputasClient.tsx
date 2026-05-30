@@ -102,88 +102,54 @@ export default function DisputasClient() {
           </div>
         ) : (
           <div style={{ borderRadius: '10px', border: '1px solid var(--color-border)', overflow: 'hidden' }}>
-            {/* Header */}
-            <div style={{
-              display:             'grid',
-              gridTemplateColumns: '0.8fr 0.8fr 0.8fr 80px 0.8fr 80px',
-              padding:             '10px 12px',
-              fontSize:            '10px',
-              fontWeight:          600,
-              textTransform:       'uppercase',
-              letterSpacing:       '0.07em',
-              backgroundColor:     'var(--color-surface-alt)',
-              color:               'var(--color-muted)',
-              overflow:            'auto',
-            }}>
-              <span>ID</span>
-              <span className="hidden sm:inline">Orden</span>
-              <span className="hidden sm:inline">Usuario</span>
-              <span style={{ textAlign: 'right' }}>Monto</span>
-              <span className="hidden sm:inline">Motivo</span>
-              <span style={{ textAlign: 'center' }}>Estado</span>
+            <div style={{ overflowX: 'auto', width: '100%' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', minWidth: '720px' }}>
+                <thead>
+                  <tr style={{ backgroundColor: 'var(--color-surface-alt)' }}>
+                    <th style={{ padding: '10px 12px', fontSize: '10px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-muted)' }}>ID</th>
+                    <th className="hidden sm:table-cell" style={{ padding: '10px 12px', fontSize: '10px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-muted)' }}>Orden</th>
+                    <th className="hidden sm:table-cell" style={{ padding: '10px 12px', fontSize: '10px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-muted)' }}>Usuario</th>
+                    <th style={{ padding: '10px 12px', fontSize: '10px', fontWeight: 600, textAlign: 'right', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-muted)' }}>Monto</th>
+                    <th style={{ padding: '10px 12px', fontSize: '10px', fontWeight: 600, textAlign: 'left', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-muted)' }}>Motivo</th>
+                    <th style={{ padding: '10px 12px', fontSize: '10px', fontWeight: 600, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.07em', color: 'var(--color-muted)' }}>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.map((d, i) => {
+                    const s = estadoStyle[d.estado]
+                    return (
+                      <tr key={d.id} style={{ backgroundColor: i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-alt)' }}>
+                        <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{d.id.slice(0, 6)}…</td>
+                        <td className="hidden sm:table-cell" style={{ padding: '10px 12px', fontFamily: 'monospace', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{d.ordenId.slice(0, 8)}…</td>
+                        <td className="hidden sm:table-cell" style={{ padding: '10px 12px', fontSize: '11px', color: 'var(--color-muted)', whiteSpace: 'nowrap' }}>{d.userId.slice(0, 8)}…</td>
+                        <td style={{ padding: '10px 12px', fontSize: '11px', fontWeight: 600, color: 'var(--color-danger)', textAlign: 'right', whiteSpace: 'nowrap' }}>$ {d.monto.toLocaleString('es-AR')}</td>
+                        <td style={{ padding: '10px 12px', fontSize: '11px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '220px' }}>{d.motivo}</td>
+                        <td style={{ padding: '10px 12px', textAlign: 'center' }}>
+                          <select
+                            value={d.estado}
+                            onChange={e => cambiarEstado(d.id, e.target.value)}
+                            style={{
+                              padding: '3px 6px',
+                              borderRadius: '6px',
+                              border: 'none',
+                              backgroundColor: s.bg,
+                              color: s.color,
+                              fontWeight: 700,
+                              fontSize: '10px',
+                              cursor: 'pointer',
+                            }}
+                          >
+                            <option value="ABIERTA">Abierta</option>
+                            <option value="RESUELTA">Resuelta</option>
+                            <option value="PERDIDA">Perdida</option>
+                          </select>
+                        </td>
+                      </tr>
+                    )
+                  })}
+                </tbody>
+              </table>
             </div>
-
-            {data.map((d, i) => {
-              const s = estadoStyle[d.estado]
-              return (
-                <div
-                  key={d.id}
-                  style={{
-                    display:             'grid',
-                    gridTemplateColumns: '0.8fr 0.8fr 0.8fr 80px 0.8fr 80px',
-                    padding:             '10px 12px',
-                    fontSize:            '12px',
-                    alignItems:          'center',
-                    borderTop:           '1px solid var(--color-border)',
-                    backgroundColor:     i % 2 === 0 ? 'var(--color-surface)' : 'var(--color-surface-alt)',
-                    color:               'var(--color-foreground)',
-                  }}
-                >
-                  <span style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--color-muted)' }}>
-                    {d.id.slice(0, 6)}…
-                  </span>
-                  <span className="hidden sm:block" style={{ fontFamily: 'monospace', fontSize: '11px', color: 'var(--color-muted)' }}>
-                    {d.ordenId.slice(0, 8)}…
-                  </span>
-                  <span className="hidden sm:block" style={{ fontSize: '11px', color: 'var(--color-muted)' }}>
-                    {d.userId.slice(0, 8)}…
-                  </span>
-                  <span style={{ textAlign: 'right', fontWeight: 600, color: 'var(--color-danger)', fontSize: '11px' }}>
-                    $ {d.monto.toLocaleString('es-AR')}
-                  </span>
-                  <span className="hidden sm:block" style={{
-                    fontSize:     '11px',
-                    overflow:     'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace:   'nowrap',
-                  }}>
-                    {d.motivo}
-                  </span>
-
-                  {/* Selector de estado */}
-                  <div style={{ display: 'flex', justifyContent: 'center' }}>
-                    <select
-                      value={d.estado}
-                      onChange={e => cambiarEstado(d.id, e.target.value)}
-                      style={{
-                        padding:         '3px 6px',
-                        borderRadius:    '6px',
-                        border:          'none',
-                        backgroundColor: s.bg,
-                        color:           s.color,
-                        fontWeight:      700,
-                        fontSize:        '10px',
-                        cursor:          'pointer',
-                      }}
-                    >
-                      <option value="ABIERTA">Abierta</option>
-                      <option value="RESUELTA">Resuelta</option>
-                      <option value="PERDIDA">Perdida</option>
-                    </select>
-                  </div>
-                </div>
-              )
-            })}
           </div>
         )}
       </div>

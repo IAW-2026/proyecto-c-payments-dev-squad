@@ -11,6 +11,7 @@ export default function PagoExitosoClient() {
   const [estado, setEstado]      = useState<Estado>('cargando')
   const [intentos, setIntentos]  = useState(0)
   const [pagoId, setPagoId]      = useState<string | null>(null)
+  const [orderId, setOrderId]    = useState<string | null>(null)
   const [modalAbierto, setModal] = useState(false)
   const [motivo, setMotivo]      = useState('')
   const [enviando, setEnviando]  = useState(false)
@@ -22,6 +23,7 @@ export default function PagoExitosoClient() {
 
     if (!preferenceId && !orderId) { setEstado('error'); return }
 
+    setOrderId(orderId)
     const params = new URLSearchParams()
     if (preferenceId) params.set('payment_id', preferenceId)
     if (orderId)      params.set('order_id', orderId)
@@ -101,6 +103,14 @@ export default function PagoExitosoClient() {
         <div className="flex flex-col gap-2 sm:gap-3">
           <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
             Volver al inicio
+          </Link>
+
+          <Link
+            href={`/envio${orderId ? `?orderId=${encodeURIComponent(orderId)}` : ''}`}
+            className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors"
+            style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
+          >
+            Ver mi envío
           </Link>
 
           {!disputaOk && pagoId && (

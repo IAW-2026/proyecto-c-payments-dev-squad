@@ -52,8 +52,40 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
 
   const items = role === 'admin' ? adminItems : userItems
 
+  const btnStyle = {
+    width:           '44px',
+    height:          '44px',
+    borderRadius:    '10px',
+    border:          '1px solid var(--color-border)',
+    backgroundColor: 'var(--color-surface-alt)',
+    color:           'var(--color-foreground)',
+    fontSize:        '20px',
+    cursor:          'pointer',
+    display:         'flex',
+    alignItems:      'center',
+    justifyContent:  'center',
+    flexShrink:      0,
+  }
+
   return (
     <>
+      {/* Botón hamburguesa fijo en mobile (siempre visible) */}
+      {isMobile && (
+        <button
+          onClick={() => setOpen(o => !o)}
+          aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+          style={{
+            ...btnStyle,
+            position: 'fixed',
+            top:      '12px',
+            left:     '12px',
+            zIndex:   40,
+          }}
+        >
+          {open ? '✕' : '☰'}
+        </button>
+      )}
+
       {/* Overlay — cierra el sidebar al tocar fuera (solo visible en mobile) */}
       {open && isMobile && (
         <div
@@ -70,21 +102,22 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
 
       <aside
         style={{
-          position:        isMobile ? 'fixed' : 'fixed',
+          position:        'fixed',
           top:             0,
           left:            0,
           height:          '100vh',
-          width:           isMobile 
-            ? (open ? '100%' : '0')
-            : (open ? '224px' : '64px'),
+          width:           isMobile ? '260px' : (open ? '224px' : '64px'),
           zIndex:          30,
           backgroundColor: 'var(--color-surface)',
           borderRight:     isMobile ? 'none' : '1px solid var(--color-border)',
           display:         'flex',
           flexDirection:   'column',
-          transition:      'width 0.3s ease, transform 0.3s ease',
+          transition:      'transform 0.25s ease, width 0.3s ease',
+          transform:       isMobile ? (open ? 'translateX(0)' : 'translateX(-110%)') : 'none',
           overflow:        'hidden',
-          boxShadow:       isMobile && open ? '0 4px 12px rgba(0,0,0,0.15)' : 'none',
+          boxShadow:       isMobile && open ? '0 14px 50px rgba(0,0,0,0.18)' : 'none',
+          borderRadius:    isMobile ? '0 20px 20px 0' : '0',
+          pointerEvents:   isMobile && !open ? 'none' : 'auto',
         }}
       >
 
@@ -97,26 +130,15 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
           minHeight:    isMobile ? 'auto' : '64px',
           borderBottom: isMobile && !open ? 'none' : '1px solid var(--color-border)',
         }}>
-          <button
-            onClick={() => setOpen(o => !o)}
-            aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
-            style={{
-              flexShrink:      0,
-              width:           isMobile ? '44px' : '40px',
-              height:          isMobile ? '44px' : '40px',
-              borderRadius:    '10px',
-              border:          '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-surface-alt)',
-              color:           'var(--color-foreground)',
-              fontSize:        isMobile ? '20px' : '18px',
-              cursor:          'pointer',
-              display:         'flex',
-              alignItems:      'center',
-              justifyContent:  'center',
-            }}
-          >
-            {open ? '✕' : '☰'}
-          </button>
+          {!isMobile && (
+            <button
+              onClick={() => setOpen(o => !o)}
+              aria-label={open ? 'Cerrar menú' : 'Abrir menú'}
+              style={btnStyle}
+            >
+              {open ? '✕' : '☰'}
+            </button>
+          )}
 
           <div style={{
             opacity:    open ? 1 : 0,
