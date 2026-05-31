@@ -18,15 +18,17 @@ export default function PagoExitosoClient() {
   const [disputaOk, setDisputaOk] = useState(false)
 
   useEffect(() => {
-    const preferenceId = searchParams.get('preference_id')
-    const orderId      = searchParams.get('external_reference')
+  const preferenceId  = searchParams.get('preference_id')
+  const orderId       = searchParams.get('external_reference')
+  const mpPaymentId   = searchParams.get('payment_id')  //id real
 
-    if (!preferenceId && !orderId) { setEstado('error'); return }
+  if (!preferenceId && !orderId) { setEstado('error'); return }
 
-    setOrderId(orderId)
-    const params = new URLSearchParams()
-    if (preferenceId) params.set('payment_id', preferenceId)
-    if (orderId)      params.set('order_id', orderId)
+  setOrderId(orderId)
+  const params = new URLSearchParams()
+  if (preferenceId) params.set('payment_id', preferenceId)
+  if (orderId)      params.set('order_id', orderId)
+  if (mpPaymentId)  params.set('mp_payment_id', mpPaymentId) 
 
     let timeout: ReturnType<typeof setTimeout>
 

@@ -1,4 +1,4 @@
-// GET /api/payments/confirm?payment_id=xxx&order_id=xxx
+// GET /api/payments/confirm?payment_id=xxx&order_id=xxx&mp_payment_id=xxx
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
@@ -13,21 +13,20 @@ const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
   charged_back: 'RECHAZADO',
 }
 
-async function getMPPaymentByPreference(preferenceId: string) {
+async function getMPPayment(mpPaymentId: string) {
   const res = await fetch(
-    `https://api.mercadopago.com/v1/payments/search?q=${preferenceId}&sort=date_created&criteria=desc&limit=1`,
+    `https://api.mercadopago.com/v1/payments/${mpPaymentId}`,
     { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } }
   )
   if (!res.ok) return null
-  const data = await res.json()
-  // Filtrar para asegurarse que es el preference correcto
-  return data.results?.find((p: any) => p.preference_id === preferenceId) ?? null
+  return res.json()
 }
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url)
-  const paymentId = searchParams.get('payment_id')
-  const orderId   = searchParams.get('order_id')
+  const paymentId   = searchParams.get('payment_id')
+  const orderId     = searchParams.get('order_id')
+  const mpPaymentId = searchParams.get('mp_payment_id')
 
   if (!paymentId && !orderId) {
     return NextResponse.json({ error: 'Faltan parámetros' }, { status: 400 })
@@ -49,49 +48,42 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
     }
 
-    // Fallback: si el pago no está aprobado, consultamos directamente a MP
-    if (pago.estado !== 'APROBADO' && paymentId && process.env.MP_ACCESS_TOKEN) {
-      const mpPayment = await getMPPaymentByPreference(paymentId)
+    // Fallback: si no está aprobado, consultamos directamente a MP con el ID real
+    if (pago.estado !== 'APROBADO' && mpPaymentId && process.env.MP_ACCESS_TOKEN) {
+      const mpPayment = await getMPPayment(mpPaymentId)
 
-      if (mpPayment) {
-        const nuevoEstado = estadoMap[mpPayment.status ?? ''] ?? 'PENDIENTE'
+      if (mpPayment && estadoMap[mpPayment.status] === 'APROBADO') {
+        await prisma.pago.update({
+          where: { id: pago.id },
+          data:  { estado: 'APROBADO' },
+        })
 
-        if (nuevoEstado === 'APROBADO') {
-          // Actualizar estado en DB
-          await prisma.pago.update({
-            where: { id: pago.id },
-            data:  { estado: 'APROBADO' },
+        if (!pago.transaccion) {
+          const ordenId  = mpPayment.external_reference ?? pago.ordenId
+          const order    = await getOrder(ordenId)
+          const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
+
+          const sale     = await postSale({
+            orderId:  ordenId,
+            sellerId,
+            total:    mpPayment.transaction_amount ?? pago.monto,
           })
+          const shipment = await postShipment(order)
 
-          // Crear transaccion si no existe
-          if (!pago.transaccion) {
-            const ordenId     = mpPayment.external_reference ?? pago.ordenId
-            const order       = await getOrder(ordenId)
-            const sellerId    = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
-
-            const sale     = await postSale({
-              orderId:  ordenId,
-              sellerId,
-              total:    mpPayment.transaction_amount ?? pago.monto,
-            })
-            const shipment = await postShipment(order)
-
-            await prisma.transaccion.create({
-              data: {
-                pagoId:     pago.id,
-                metodo:     mpPayment.payment_method_id ?? 'mercadopago',
-                saleId:     sale.id,
-                shipmentId: shipment.id,
-              },
-            })
-          }
-
-          // Releer el pago actualizado
-          pago = await prisma.pago.findUnique({
-            where:   { id: pago.id },
-            include: { transaccion: true },
-          })!
+          await prisma.transaccion.create({
+            data: {
+              pagoId:     pago.id,
+              metodo:     mpPayment.payment_method_id ?? 'mercadopago',
+              saleId:     sale.id,
+              shipmentId: shipment.id,
+            },
+          })
         }
+
+        pago = await prisma.pago.findUnique({
+          where:   { id: pago.id },
+          include: { transaccion: true },
+        })
       }
     }
 
