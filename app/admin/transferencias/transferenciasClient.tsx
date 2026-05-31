@@ -1,6 +1,7 @@
 'use client'
 // app/admin/transferencias/TransferenciasClient.tsx
 import { useEffect, useState } from 'react'
+import { useSearchParams, useRouter } from 'next/navigation'
 
 type Estado = 'APROBADO' | 'PENDIENTE' | 'RECHAZADO'
 type Tab    = 'TODOS' | Estado
@@ -30,18 +31,46 @@ const ESTADO_STYLE: Record<Estado, { bg: string; color: string; label: string }>
 }
 
 export default function TransferenciasClient() {
+  const searchParams = useSearchParams()
+  const router = useRouter()
+
   const [data, setData]       = useState<Transferencia[]>([])
   const [loading, setLoading] = useState(true)
   const [tab, setTab]         = useState<Tab>('TODOS')
 
-  useEffect(() => {
-    fetch('/api/admin/stats')
-      .then(r => r.json())
-      .then(d => { setData(d.transferencias); setLoading(false) })
-      .catch(() => setLoading(false))
-  }, [])
+  const pageParam = parseInt(searchParams.get('page') || '1', 10) || 1
+  const perPageParam = parseInt(searchParams.get('perPage') || '10', 10) || 10
+  const qParam = searchParams.get('q') || ''
 
-  const filas = tab === 'TODOS' ? data : data.filter(t => t.estado === tab)
+  const [page, setPage] = useState<number>(pageParam)
+  const [perPage] = useState<number>(perPageParam)
+  const [q, setQ] = useState<string>(qParam)
+  const [totalPages, setTotalPages] = useState<number>(1)
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true)
+      try {
+        const params = new URLSearchParams()
+        params.set('page', String(page))
+        params.set('perPage', String(perPage))
+        if (q) params.set('q', q)
+        if (tab !== 'TODOS') params.set('estado', tab)
+
+        const res = await fetch(`/api/admin/transferencias?${params.toString()}`)
+        const json = await res.json()
+        setData(json.items || [])
+        setTotalPages(json.totalPages || 1)
+      } catch (err) {
+        console.error(err)
+      } finally {
+        setLoading(false)
+      }
+    }
+    load()
+  }, [page, perPage, q, tab])
+
+  const filas = data
   const total = filas.reduce((s, t) => s + t.monto, 0)
 
   return (
@@ -79,7 +108,16 @@ export default function TransferenciasClient() {
           {TABS.map(t => (
             <button
               key={t.id}
-              onClick={() => setTab(t.id)}
+              onClick={() => {
+                setTab(t.id)
+                // update URL
+                const params = new URLSearchParams(searchParams.toString())
+                if (t.id === 'TODOS') params.delete('estado')
+                else params.set('estado', t.id)
+                params.set('page', '1')
+                router.push(`${location.pathname}?${params.toString()}`)
+                setPage(1)
+              }}
               style={{
                 display:         'flex',
                 alignItems:      'center',
@@ -97,18 +135,43 @@ export default function TransferenciasClient() {
               }}
             >
               <span>{t.icon}</span><span className="hidden sm:inline">{t.label}</span>
-              <span style={{
+                <span style={{
                 fontSize:        '10px',
                 fontWeight:      700,
                 padding:         '1px 4px',
                 borderRadius:    '999px',
                 backgroundColor: tab === t.id ? 'rgba(255,255,255,0.2)' : 'var(--color-muted-light)',
-                color:           tab === t.id ? '#fff'                   : 'var(--color-muted)',
+                color:           tab === t.id ? 'var(--color-on-primary)' : 'var(--color-muted)',
               }}>
                 {t.id === 'TODOS' ? data.length : data.filter(x => x.estado === t.id).length}
               </span>
             </button>
           ))}
+        </div>
+
+        {/* Search bar */}
+        <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+          <input
+            aria-label="Buscar"
+            placeholder="Buscar por pago, orden o usuario"
+            value={q}
+            onChange={e => setQ(e.target.value)}
+            style={{ padding: '6px 10px', borderRadius: 8, border: '1px solid var(--color-border)', background: 'var(--color-surface)' }}
+          />
+          <button
+            onClick={() => {
+              const params = new URLSearchParams(searchParams.toString())
+              if (q) params.set('q', q)
+              else params.delete('q')
+              params.set('page', '1')
+              router.push(`${location.pathname}?${params.toString()}`)
+              setPage(1)
+            }}
+            className="px-3 py-1 rounded-lg"
+            style={{ backgroundColor: 'var(--color-primary)', color: 'var(--color-on-primary)' }}
+          >
+            Buscar
+          </button>
         </div>
 
         {/* Summary */}
@@ -209,6 +272,47 @@ export default function TransferenciasClient() {
                 </div>
               )
             })}
+          </div>
+        )}
+
+        {/* Pagination controls */}
+        {!loading && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
+            <div style={{ color: 'var(--color-muted)', fontSize: '13px' }}>
+              Página {page} de {totalPages}
+            </div>
+            <div style={{ display: 'flex', gap: 8 }}>
+              <button
+                onClick={() => {
+                  if (page <= 1) return
+                  const next = page - 1
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.set('page', String(next))
+                  router.push(`${location.pathname}?${params.toString()}`)
+                  setPage(next)
+                }}
+                disabled={page <= 1}
+                className="px-3 py-1 rounded-lg"
+                style={{ backgroundColor: page <= 1 ? 'var(--color-border)' : 'var(--color-surface)', color: 'var(--color-foreground)' }}
+              >
+                ← Anterior
+              </button>
+              <button
+                onClick={() => {
+                  if (page >= totalPages) return
+                  const next = page + 1
+                  const params = new URLSearchParams(searchParams.toString())
+                  params.set('page', String(next))
+                  router.push(`${location.pathname}?${params.toString()}`)
+                  setPage(next)
+                }}
+                disabled={page >= totalPages}
+                className="px-3 py-1 rounded-lg"
+                style={{ backgroundColor: page >= totalPages ? 'var(--color-border)' : 'var(--color-primary)', color: 'var(--color-on-primary)' }}
+              >
+                Siguiente →
+              </button>
+            </div>
           </div>
         )}
       </div>

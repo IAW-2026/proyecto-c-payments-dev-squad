@@ -131,9 +131,9 @@ export default function DisputasClient() {
                             style={{
                               padding: '3px 6px',
                               borderRadius: '6px',
-                              border: 'none',
-                              backgroundColor: s.bg,
-                              color: s.color,
+                              border: '1px solid var(--color-border)',
+                              backgroundColor: 'var(--color-surface)',
+                              color: 'var(--color-foreground)',
                               fontWeight: 700,
                               fontSize: '10px',
                               cursor: 'pointer',
