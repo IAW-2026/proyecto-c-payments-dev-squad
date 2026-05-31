@@ -24,6 +24,7 @@ interface Order {
   shipping: number
   status:   string
   address:  string
+  originAddress: string
   carrier:  'MAIL' | 'PICKUP'
   items:    OrderItem[]
 }
@@ -31,16 +32,17 @@ interface Order {
 const MOCK_ORDER: Order = {
   id:       'order-mock-001',
   userId:   'user-mock-001',
-  total:    17099,
-  discount: 1900,
+  total:    249999,
+  discount: 10000,
   shipping: 0,
   status:   'PENDING',
   address:  'Av. Rivadavia 3450, Buenos Aires, 1204',
+  originAddress: 'Av. Corrientes 1234, Buenos Aires, 1043',
   carrier:  'MAIL',
   items: [
     {
-      name:     'Zapatillas Jordan',
-      price:    18999,
+      name:     'Nike Dunk High Retro Premium',
+      price:    259999,
       quantity: 1,
       size:     42,
       color:    'Negro',
