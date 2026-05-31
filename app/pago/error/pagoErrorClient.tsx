@@ -1,8 +1,20 @@
 'use client'
 
+import { useEffect } from 'react'
+import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 
 export default function PagoErrorClient() {
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const mpPaymentId  = searchParams.get('payment_id')
+    const preferenceId = searchParams.get('preference_id')
+    if (!mpPaymentId || !preferenceId) return
+    fetch(`/api/payments/webhook?mp_payment_id=${mpPaymentId}&preference_id=${preferenceId}`)
+      .catch(() => {})
+  }, [searchParams])
+
   return (
     <main className="min-h-screen flex items-center justify-center px-4 py-8" style={{ backgroundColor: 'var(--color-background)' }}>
       <div className="text-center p-6 sm:p-8 rounded-lg sm:rounded-xl border max-w-md w-full" style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-danger)' }}>

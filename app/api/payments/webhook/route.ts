@@ -1,9 +1,3 @@
-// app/api/payments/webhook/route.ts
-// POST /api/payments/webhook  ← MP llama acá
-//
-// PARA PROBAR LOCALMENTE:
-//   npx ngrok http 3000
-//   MP NO TIENE ACCESO A LOCALHOST — guardá la URL de ngrok en .env como NEXT_PUBLIC_URL
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
@@ -26,19 +20,48 @@ async function getMPPayment(id: string) {
   return res.json()
 }
 
+export async function GET(req: NextRequest) {
+  const { searchParams } = new URL(req.url)
+  const mpPaymentId  = searchParams.get('mp_payment_id')
+  const preferenceId = searchParams.get('preference_id')
+
+  if (!mpPaymentId || !preferenceId || !process.env.MP_ACCESS_TOKEN) {
+    return NextResponse.json({ ok: false }, { status: 400 })
+  }
+
+  try {
+    const mpPayment   = await getMPPayment(mpPaymentId)
+    const nuevoEstado = estadoMap[mpPayment.status] ?? 'PENDIENTE'
+
+    const pago = await prisma.pago.findFirst({
+      where:   { preferenceId },
+      orderBy: { createdAt: 'desc' },
+    })
+
+    if (pago) {
+      await prisma.pago.update({
+        where: { id: pago.id },
+        data:  { estado: nuevoEstado },
+      })
+    }
+
+    return NextResponse.json({ ok: true, estado: nuevoEstado })
+  } catch {
+    return NextResponse.json({ ok: false })
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
     const { searchParams } = new URL(req.url)
 
-    // MP manda el ID en dos lugares distintos según el formato
     const mpPaymentId =
-      body.data?.id ||         // formato nuevo: { type: "payment", data: { id } }
-      searchParams.get('id')   // formato viejo: ?id=xxx&topic=payment
+      body.data?.id ||
+      searchParams.get('id')
 
     const type = body.type || searchParams.get('topic')
 
-    // Solo nos interesa el evento de pago, ignorar merchant_order y otros
     if (type !== 'payment') {
       return NextResponse.json({ received: true })
     }
@@ -47,7 +70,6 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Sin payment id' }, { status: 400 })
     }
 
-    // Fetch directo a la API de MP — el SDK omite preference_id en el parseo
     const mpPayment    = await getMPPayment(mpPaymentId)
     const nuevoEstado  = estadoMap[mpPayment.status ?? ''] ?? 'PENDIENTE'
     const ordenId      = mpPayment.external_reference
@@ -62,9 +84,7 @@ export async function POST(req: NextRequest) {
     }
 
     const pago = await prisma.pago.findFirst({
-      where: preferenceId
-        ? { preferenceId }          // búsqueda exacta — no hay colisiones
-        : { ordenId },              // fallback si no viene (no debería pasar)
+      where: preferenceId ? { preferenceId } : { ordenId },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -79,7 +99,6 @@ export async function POST(req: NextRequest) {
       data:  { estado: nuevoEstado },
     })
 
-    // Chargeback — MP manda status "charged_back" o "in_process"
     if (mpPayment.status === 'charged_back' || mpPayment.status === 'in_process') {
       const disputaExistente = await prisma.disputa.findFirst({
         where: { pagoId: pago.id, origen: 'chargeback' },
@@ -123,7 +142,6 @@ export async function POST(req: NextRequest) {
       })
     }
 
-    // Siempre 200 — si MP recibe 4xx/5xx reintenta durante horas
     return NextResponse.json({ received: true })
 
   } catch (error) {
