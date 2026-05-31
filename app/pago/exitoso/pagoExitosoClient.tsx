@@ -20,7 +20,7 @@ export default function PagoExitosoClient() {
   useEffect(() => {
   const preferenceId  = searchParams.get('preference_id')
   const orderId       = searchParams.get('external_reference')
-  const mpPaymentId   = searchParams.get('payment_id')  //id real
+  const mpPaymentId   = searchParams.get('payment_id')
 
   if (!preferenceId && !orderId) { setEstado('error'); return }
 
@@ -28,35 +28,40 @@ export default function PagoExitosoClient() {
   const params = new URLSearchParams()
   if (preferenceId) params.set('payment_id', preferenceId)
   if (orderId)      params.set('order_id', orderId)
-  if (mpPaymentId)  params.set('mp_payment_id', mpPaymentId) 
+  if (mpPaymentId)  params.set('mp_payment_id', mpPaymentId)
 
-    let timeout: ReturnType<typeof setTimeout>
+  let timeout: ReturnType<typeof setTimeout>
 
-    async function consultar(intento: number) {
-      try {
-        const res  = await fetch(`/api/payments/confirm?${params}`)
-        const data = await res.json()
+  async function consultar(intento: number) {
+    try {
+      const res  = await fetch(`/api/payments/confirm?${params}`)
+      const data = await res.json()
 
-        if (res.ok) {
-          setPagoId(data.pagoId ?? null)
-          setEstado('aprobado')
-          return
-        }
-
-        if (res.status === 402 && intento < 10) {
-          setIntentos(intento + 1)
-          timeout = setTimeout(() => consultar(intento + 1), 2000)
-        } else {
-          setEstado('pendiente')
-        }
-      } catch {
-        setEstado('error')
+      if (res.ok) {
+        setPagoId(data.pagoId ?? null)
+        setEstado('aprobado')
+        return
       }
-    }
 
-    consultar(0)
-    return () => clearTimeout(timeout)
-  }, [searchParams])
+      if (res.status === 400) {
+        window.location.href = '/pago/error'
+        return
+      }
+
+      if (res.status === 402 && intento < 10) {
+        setIntentos(intento + 1)
+        timeout = setTimeout(() => consultar(intento + 1), 2000)
+      } else {
+        setEstado('pendiente')
+      }
+    } catch {
+      setEstado('error')
+    }
+  }
+
+  consultar(0)
+  return () => clearTimeout(timeout)
+}, [searchParams])
 
   async function abrirDisputa() {
     if (!motivo.trim() || !pagoId) return

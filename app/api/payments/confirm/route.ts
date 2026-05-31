@@ -52,13 +52,16 @@ export async function GET(req: NextRequest) {
     if (pago.estado !== 'APROBADO' && mpPaymentId && process.env.MP_ACCESS_TOKEN) {
       const mpPayment = await getMPPayment(mpPaymentId)
 
-      if (mpPayment && estadoMap[mpPayment.status] === 'APROBADO') {
+      if (mpPayment) {
+        const nuevoEstado = estadoMap[mpPayment.status] ?? 'PENDIENTE'
+
+        // Actualizar estado en DB siempre
         await prisma.pago.update({
           where: { id: pago.id },
-          data:  { estado: 'APROBADO' },
+          data:  { estado: nuevoEstado },
         })
 
-        if (!pago.transaccion) {
+        if (nuevoEstado === 'APROBADO' && !pago.transaccion) {
           const ordenId  = mpPayment.external_reference ?? pago.ordenId
           const order    = await getOrder(ordenId)
           const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
@@ -87,9 +90,16 @@ export async function GET(req: NextRequest) {
       }
     }
 
+    if (pago!.estado === 'RECHAZADO') {
+      return NextResponse.json(
+        { error: 'El pago fue rechazado', estado: 'RECHAZADO' },
+        { status: 400 }
+      )
+    }
+
     if (pago!.estado !== 'APROBADO') {
       return NextResponse.json(
-        { error: `El pago está en estado ${pago!.estado.toLowerCase()}` },
+        { error: `El pago está en estado ${pago!.estado.toLowerCase()}`, estado: pago!.estado },
         { status: 402 }
       )
     }
