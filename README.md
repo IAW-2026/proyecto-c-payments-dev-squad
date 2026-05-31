@@ -1,67 +1,30 @@
 [![Review Assignment Due Date](https://classroom.github.com/assets/deadline-readme-button-22041afd0340ce965d47ae6ef1cefeee28c7c493a6346c4f15d667ab976d596c.svg)](https://classroom.github.com/a/Ks7Ywtwc)
-# payments
 
-Aplicación **Payments** del [Proyecto IAW 2026](https://iaw-2026.github.io/proyecto/) — comisión `<!-- completar -->`.
+# 💳 Payments App
 
-Esta app corresponde al módulo de pagos en los proyectos de tipo **A (Transporte)**, **B (Delivery)** y **C (Marketplace)**.
+Aplicación de gestión de pagos del [Proyecto IAW 2026](https://iaw-2026.github.io/proyecto/). Procesa transacciones con MercadoPago, gestiona disputas y coordina con los módulos de Vendedor y Envíos. Incluye panel de administración y autenticación con Clerk.
 
----
+## 🔗 Deploy
 
-Enunciado completo: <https://iaw-2026.github.io/proyecto/>
+**[Abrir app](https://proyecto-c-payments-dev-squad.vercel.app/**
 
-El flujo de MP es:
-MP llama → webhook
-  → actualiza estado en DB
-  → crea Transaccion
-  → avisa a Seller App (POST /sales)
-  → avisa a Shipping App (POST /shipments)
+## 👥 Acceso
 
-## 🚀 Deploy en Vercel
+### Administrador
+- Crear usuario en Clerk Dashboard con `publicMetadata: { "role": "admin" }`
+- Accede a `/admin/dashboard`, `/admin/transferencias`, `/admin/disputas`
 
-### Variables de entorno requeridas
-
-Configurar en Vercel las siguientes variables de entorno:
-
-```bash
-# MercadoPago
-MP_ACCESS_TOKEN=TEST-xxxxxxxxxxxxx
-
-# URLs de las otras apps (después del deploy)
-BUYER_APP_URL=https://tu-buyer-app.vercel.app
-SELLER_APP_URL=https://tu-seller-app.vercel.app
-SHIPPING_APP_URL=https://tu-shipping-app.vercel.app
-
-# URL de este proyecto
-NEXT_PUBLIC_URL=https://tu-payments-app.vercel.app
-
-# Clerk Authentication
-NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=pk_test_...
-CLERK_SECRET_KEY=sk_test_...
-
-# Base de datos (PostgreSQL)
-DATABASE_URL=postgresql://username:password@host:port/database
-```
-
-### Pasos para el deploy
-
-1. **Configurar base de datos**: Crear una base de datos PostgreSQL (Neon, Supabase, etc.)
-2. **Configurar MercadoPago**: Obtener access token de test
-3. **Configurar Clerk**: Crear aplicación en Clerk y obtener las keys
-4. **Deploy en Vercel**: Conectar el repo y configurar las variables de entorno
-5. **Actualizar URLs**: Una vez desplegado, actualizar las URLs en las otras apps
+### Usuario final
+- Cualquier usuario registrado en Clerk sin rol asignado
+- Accede al checkout de pago desde la Buyer App
 
 ## 🛠️ Desarrollo local
 
 ```bash
-# Instalar dependencias
 npm install
-
-# Configurar variables de entorno
-cp .env.example .env.local
-
-# Ejecutar Prisma migrations
+cp .env.example .env.local  # completar credenciales
 npx prisma migrate dev
-
-# Ejecutar en desarrollo
 npm run dev
 ```
+
+Variables requeridas en `.env`: `MP_ACCESS_TOKEN`, `DATABASE_URL`, `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, `NEXT_PUBLIC_URL`, `BUYER_APP_URL`, `SELLER_APP_URL`, `SHIPPING_APP_URL`, `ORS_API_KEY`.
