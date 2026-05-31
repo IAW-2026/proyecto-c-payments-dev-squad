@@ -15,12 +15,13 @@ const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
 
 async function getMPPaymentByPreference(preferenceId: string) {
   const res = await fetch(
-    `https://api.mercadopago.com/v1/payments/search?preference_id=${preferenceId}&sort=date_created&criteria=desc&limit=1`,
+    `https://api.mercadopago.com/v1/payments/search?q=${preferenceId}&sort=date_created&criteria=desc&limit=1`,
     { headers: { Authorization: `Bearer ${process.env.MP_ACCESS_TOKEN}` } }
   )
   if (!res.ok) return null
   const data = await res.json()
-  return data.results?.[0] ?? null
+  // Filtrar para asegurarse que es el preference correcto
+  return data.results?.find((p: any) => p.preference_id === preferenceId) ?? null
 }
 
 export async function GET(req: NextRequest) {
