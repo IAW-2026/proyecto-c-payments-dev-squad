@@ -74,13 +74,6 @@ export default async function EnvioClient({ orderId }: EnvioClientProps) {
             >
               Volver al inicio
             </Link>
-            <Link
-              href="/pago/exitoso"
-              className="rounded-lg px-4 py-3 text-sm font-semibold text-center"
-              style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
-            >
-              Volver a pago exitoso
-            </Link>
           </div>
         </div>
       </div>

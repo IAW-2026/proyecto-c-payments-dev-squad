@@ -15,7 +15,7 @@
 | Administrador | admin+clerk_test@iaw.com |
 | Usuario final | payments+clerk_test@iaw.com |
 
-
+Contraseña: iawuser#
 
 ---
 
@@ -35,47 +35,16 @@ Ver `.env.example` para la lista completa.
 | `SHIPPING_APP_URL` | URL de la app de Envíos |
 | `ORS_API_KEY` | API key de OpenRouteService |
 
-
-### Lo que yo mismo consumo (como App)
-
-
-| Método | Endpoint                    | Descripción                                                              | Consumido por       |
-|:------:|-----------------------------|---------------------------------------------------------------------------|--------------------|
-
-| POST   | `/api/disputes`             | Abre disputa sobre pago                                                  | Buyer App          |
-| PATCH  | `/api/disputes/{id}`        | Resuelve/rechaza disputa                                                 | Admin               |
-| GET    | `/api/admin/transferencias` | Lista transferencias con filtros                                         | Admin               |
-| GET    | `/api/admin/stats`          | Estadísticas y gráficos                                                  | Admin               |
-
-#### Buyer App
-
-| Método | Endpoint        | Descripción                        | Consumido por  |
-|:------:|-----------------|------------------------------------|----------------|
-| GET    | `/orders/{id}`  | Obtiene datos de la orden          | Payments App   |
-
-
-#### Seller App
-
-| Método | Endpoint       | Descripción                                          | Consumido por  |
-|:------:|----------------|------------------------------------------------------|----------------|
-| GET    | `/sellers/{id}`| Obtiene datos del vendedor (mpAccountId para MP)     | Payments App   |
-
-
-#### Shipping App
-Esto fue usado para simular con el Botón de Ver Envío; no es útil para mi app
-
-| Método | Endpoint                      | Descripción                                    | Consumido por  |
-|:------:|-------------------------------|------------------------------------------------|----------------|
-| GET    | `/shipments/{orderId}`        | Obtiene estado del envío                       | (Buyer App)    | 
-| GET    | `/shipments/{orderId}/tracking`| Obtiene eventos de seguimiento                 | (Buyer App)    |
-
-
 #### Debilidades de mi App
 Me hubiera gustado tener un sistema de disputas que no sea meramente representativo. En el estado actual, no funciona como mediador entre Seller y Buyer para que se pueda retornar el dinero. Sirve para ver un pantallazo de cómo se vería desde un rol administrativo.
 
 Otra funcionalidad que no hemos agregado, al menos en esta etapa, es la de Cancelar Pedido. Pensamos que probablemente sería mucho más sencillo de implementar cuando tengamos las integraciones hechas.
 
 Mi App podría responder mucho más rápido, pero no he hallado el tiempo para mejorar el tiempo de respuesta. Es algo importante que mejoraré definitivamente para la tercera etapa.
+
+## Conocido / Known Issues
+
+- El checkout de MercadoPago genera un warning de CSP en consola (`Executing inline script violates...`). No afecta el funcionamiento del pago ni el flujo de la app.
 
 #### Fortalezas de mi App
 En el panel de Admin posee un gráfico ilustrativo para comparar las transacciones por monto entre 7 y 30 días. Es realmente útil para un usuario administrador, pues puede visualizar mejor el procesamiento de los datos. La sidebar se actualiza dependiendo del rol, así que el administrador tiene acceso a las disputas, listado de transacciones que filtra entre las diez que aparezcan por pantalla y el dashboard (donde están las stats).
@@ -89,3 +58,4 @@ Se puede utilizar tanto por la computadora como mediante un teléfono. Está ada
 
 #### NOTAS
 - La asignación de roles se hace mediante publicMetadata.role en Clerk.
+
