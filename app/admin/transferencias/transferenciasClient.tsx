@@ -71,7 +71,9 @@ export default function TransferenciasClient() {
   }, [page, perPage, q, tab])
 
   const filas = data
-  const total = filas.reduce((s, t) => s + t.monto, 0)
+  const total = filas
+    .filter(t => t.estado === 'APROBADO')
+    .reduce((s, t) => s + t.monto, 0)
 
   return (
     <div style={{ padding: '12px 16px', display: 'flex', flexDirection: 'column', gap: '16px' }}>
