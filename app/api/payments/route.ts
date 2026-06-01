@@ -1,7 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@clerk/nextjs/server'
 import { prisma } from '@/lib/db'
-import { getOrder } from '@/lib/services/buyerApp'
+import { getOrder, calcularTotalOrden } from '@/lib/services/buyerApp'
+import { calcularCostoEnvio } from '@/lib/services/shippingCost'
 
 export async function POST(req: NextRequest) {
   try {
@@ -20,6 +21,11 @@ export async function POST(req: NextRequest) {
     }
 
     const order = await getOrder(orderId)
+
+    if (order.carrier === 'MAIL' && order.shipping === 0) {
+      order.shipping = await calcularCostoEnvio(order.originAddress, order.address)
+    }
+    order.total = calcularTotalOrden(order)
 
     if (!process.env.MP_ACCESS_TOKEN) {
       const pago = await prisma.pago.create({

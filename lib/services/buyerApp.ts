@@ -70,6 +70,11 @@ export async function getOrder(orderId: string): Promise<Order> {
   }
 }
 
+export function calcularTotalOrden(order: Order): number {
+  const subtotal = order.items.reduce((sum, item) => sum + item.price * item.quantity, 0)
+  return subtotal + order.shipping - order.discount
+}
+
 export async function getUser(userId: string) {
   if (!BUYER_APP_URL) return MOCK_USER
   try {
