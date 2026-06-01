@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
-import { getOrder } from '@/lib/services/buyerApp'
+import { getOrder, postTransaction } from '@/lib/services/buyerApp'
 
 const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
   approved:     'APROBADO',
@@ -72,6 +72,12 @@ export async function GET(req: NextRequest) {
             total:    mpPayment.transaction_amount ?? pago.monto,
           })
           const shipment = await postShipment(order)
+          await postTransaction({
+            orderId: ordenId,
+            userId: pago.userId,
+            pagoId: pago.id,
+            estado: 'APROBADO',
+          })
 
           await prisma.transaccion.create({
             data: {

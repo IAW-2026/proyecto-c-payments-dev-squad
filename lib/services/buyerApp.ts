@@ -80,3 +80,26 @@ export async function getUser(userId: string) {
     return MOCK_USER
   }
 }
+
+/**
+ * Notifica a Buyer App que la transacción fue completada.
+ */
+export async function postTransaction(payload: {
+  orderId:  string
+  userId:   string
+  pagoId:   string
+  estado:   'APROBADO' | 'RECHAZADO' | 'PENDIENTE'
+}) {
+  if (!BUYER_APP_URL) return { ok: true }
+  try {
+    const res = await fetch(`${BUYER_APP_URL}/transactions`, {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify(payload),
+    })
+    if (!res.ok) throw new Error()
+    return await res.json()
+  } catch {
+    return { ok: true }
+  }
+}
