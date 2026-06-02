@@ -54,9 +54,7 @@ El usuario puede realizar una disputa apenas el pago retorne como exitoso. Si bi
 
 La App presenta un modo oscuro/claro con un tamaño adecuado de las letras. Hemos adaptado el logo para que se vea claramente en ambos temas.
 
+Además, se utiliza una API para calcular el costo de envío cuando corresponde (configurable mediante "ORS_API_KEY"). Mejora la precisión del precio mostrado al usuario al calcular el costo según dirección y carrier y automatiza el proceso evitando cálculos manuales. Se puede configurar el costo fácilmente.
+
 Se puede utilizar tanto por la computadora como mediante un teléfono. Está adaptada para que sea amigable con el usuario si este desea emplear un celular.
-
-
-#### NOTAS
-- La asignación de roles se hace mediante publicMetadata.role en Clerk.
 
