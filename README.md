@@ -58,3 +58,8 @@ Además, se utiliza una API para calcular el costo de envío cuando corresponde 
 
 Se puede utilizar tanto por la computadora como mediante un teléfono. Está adaptada para que sea amigable con el usuario si este desea emplear un celular.
 
+
+#### NOTAS
+- La asignación de roles se hace mediante publicMetadata.role en Clerk.
+- En mi App, nunca utilicé el seed.ts; siempre cargué todo a mano. Lo dejé como opción para que la cátedra lo utilice si así lo cree conveniente.
+
