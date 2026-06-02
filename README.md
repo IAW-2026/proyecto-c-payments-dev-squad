@@ -44,6 +44,7 @@ Otra funcionalidad que no hemos agregado, al menos en esta etapa, es la de Cance
 
 - El checkout de MercadoPago genera un warning de CSP en consola (`Executing inline script violates...`). No afecta el funcionamiento del pago ni el flujo de la app.
 - Cuando el usuario accede a pagar (ya redirigido a MP), y presiona el botón para volver hacia atrás, salta Error de Pago, pero en la DB figura como pendiente. Esto sucede porque al regresar se consulta el estado de la transacción y este es "PENDIENTE". He explorado distintas soluciones y estará hecho en la siguiente etapa.
+- El webhook de MercadoPago está implementado para entornos productivos. En pruebas, el procesamiento del pago se realiza a través de /api/payments/confirm.
 - Mi App podría responder mucho más rápido, pero no he hallado el tiempo para mejorar el tiempo de respuesta. Es algo importante que mejoraré definitivamente para la tercera etapa.
 
 #### Fortalezas de mi App
