@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model Pago {
+  id           String       @id @default(uuid())
+  ordenId      String
+  userId       String
+  monto        Float
+  estado       EstadoPago   @default(PENDIENTE)
+  disputas      Disputa[]
+  preferenceId String?
+  transaccion  Transaccion?
+  createdAt    DateTime     @default(now())
+  updatedAt    DateTime     @updatedAt
+
+  @@map("pagos")
+}
+
+model Transaccion {
+  id         String   @id @default(uuid())
+  pagoId     String   @unique
+  pago       Pago     @relation(fields: [pagoId], references: [id])
+  metodo     String
+  saleId     String
+  shipmentId String
+  fecha      DateTime @default(now())
+
+  @@map("transacciones")
+}
+
+enum EstadoPago {
+  PENDIENTE
+  APROBADO
+  RECHAZADO
+}
+enum EstadoDisputa {
+  ABIERTA
+  RESUELTA
+  PERDIDA
+}
+
+model Disputa {
+  id      String         @id @default(uuid())
+  pagoId  String
+  userId  String
+  motivo  String
+  estado  EstadoDisputa  @default(ABIERTA)
+  origen  String         @default("usuario") // "usuario" | "chargeback"
+  fecha   DateTime       @default(now())
+  pago    Pago           @relation(fields: [pagoId], references: [id])
+
+  @@map("disputas")
+}
