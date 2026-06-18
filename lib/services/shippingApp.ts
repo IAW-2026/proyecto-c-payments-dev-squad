@@ -17,16 +17,16 @@ interface OrderItem {
 }
 
 interface Order {
-  id:       string
-  userId:   string
-  total:    number
-  discount: number
-  shipping: number
-  status:   string
-  address:  string
+  id:            string
+  userId:        string
+  total:         number
+  discount:      number
+  shipping:      number
+  status:        string
+  address:       string
   originAddress: string
-  carrier:  'MAIL' | 'PICKUP'
-  items:    OrderItem[]
+  carrier:       'MAIL' | 'PICKUP'
+  items:         OrderItem[]
 }
 
 interface Shipment {
@@ -85,10 +85,6 @@ const MOCK_TRACKING: TrackingEvent[] = [
   },
 ]
 
-/**
- * Crea el envío pasando la orden completa — shipping saca la dirección
- * y el carrier de ahí directamente.
- */
 function buildShipmentPayload(order: Order) {
   return {
     orderId:      order.id,
@@ -112,12 +108,22 @@ function defaultShippingHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-
-  if (SHIPPING_API_KEY) {
-    headers['x-api-key'] = SHIPPING_API_KEY
-  }
-
+  if (SHIPPING_API_KEY) headers['x-api-key'] = SHIPPING_API_KEY
   return headers
+}
+
+function normalizeShipment(data: any, order: Order): Shipment {
+  return {
+    id:                String(data.id ?? 'ship-mock-001'),
+    orderId:           String(data.orderId ?? order.id),
+    buyerId:           String(data.buyerId ?? order.userId),
+    status:            data.status ?? 'pendiente',
+    carrier:           data.carrier ?? order.carrier,
+    address:           data.address ?? order.address,
+    estimatedDelivery: data.estimatedDelivery ?? null,
+    shippedAt:         data.shippedAt ?? null,
+    deliveredAt:       data.deliveredAt ?? null,
+  }
 }
 
 export async function postShipment(order: Order): Promise<Shipment> {
@@ -131,7 +137,8 @@ export async function postShipment(order: Order): Promise<Shipment> {
       body:    JSON.stringify(buildShipmentPayload(order)),
     })
     if (!res.ok) throw new Error(`Shipping API error: ${res.status}`)
-    return await res.json()
+    const data = await res.json()
+    return normalizeShipment(data, order)
   } catch (e: any) {
     console.error('[postShipment] error:', e)
     return { ...MOCK_SHIPMENT, orderId: order.id, buyerId: order.userId, carrier: order.carrier, address: order.address }
@@ -145,7 +152,8 @@ export async function getShipment(orderId: string): Promise<Shipment> {
       headers: defaultShippingHeaders(),
     })
     if (!res.ok) throw new Error(`Shipping API error: ${res.status}`)
-    return await res.json()
+    const data = await res.json()
+    return normalizeShipment(data, { id: orderId } as Order)
   } catch {
     return MOCK_SHIPMENT
   }
