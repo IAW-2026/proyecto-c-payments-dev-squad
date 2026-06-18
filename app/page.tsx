@@ -1,7 +1,7 @@
 ﻿import { redirect } from 'next/navigation'
 import { auth } from '@clerk/nextjs/server'
 import { getRole } from '@/lib/auth'
-import { getOrder, calcularTotalOrden } from '@/lib/services/buyerApp'
+import { Order, MOCK_ORDER, calcularTotalOrden } from '@/lib/services/buyerApp'
 import { calcularCostoEnvio } from '@/lib/services/shippingCost'
 import PaymentClient from './paymentClient'
 
@@ -17,8 +17,10 @@ export default async function PaymentsPage({ searchParams }: Props) {
   if (!userId) redirect('/sign-in')
 
   const { orderId = 'order-mock-001' } = await searchParams
-  const order = await getOrder(orderId)
+  const order: Order = { ...MOCK_ORDER, id: orderId, userId }
 
+  // Buyer no expone un endpoint GET de órdenes, por lo que usamos una orden local
+  // y enviamos los datos directamente al POST de /api/payments.
   // Calcular costo de envío solo si es MAIL y shipping es 0,
   // luego recalcular el total desde los items, el envío y el descuento.
   if (order.carrier === 'MAIL' && order.shipping === 0) {

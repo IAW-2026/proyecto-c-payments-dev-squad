@@ -152,9 +152,11 @@ export async function getShipment(orderId: string): Promise<Shipment> {
 }
 
 export async function getTracking(orderId: string): Promise<TrackingEvent[]> {
-  if (!SHIPPING_APP_URL) return MOCK_TRACKING
+  if (!SHIPPING_APP_URL || !SHIPPING_API_KEY) return MOCK_TRACKING
   try {
-    const res = await fetch(`${SHIPPING_APP_URL}/shipments/${orderId}/tracking`)
+    const res = await fetch(`${SHIPPING_APP_URL}/shipments/${orderId}/tracking`, {
+      headers: defaultShippingHeaders(),
+    })
     if (!res.ok) throw new Error()
     return await res.json()
   } catch {

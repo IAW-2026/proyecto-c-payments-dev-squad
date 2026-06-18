@@ -1,8 +1,9 @@
+// app/api/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
-import { getOrder } from '@/lib/services/buyerApp'
+import type { OrderPayload } from '@/app/api/payments/route'
 
 const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
   approved:     'APROBADO',
@@ -133,8 +134,15 @@ export async function POST(req: NextRequest) {
     }
 
     if (nuevoEstado === 'APROBADO') {
-      const order    = await getOrder(ordenId)
-      const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
+      if (!pago.orderData) {
+        console.error('[webhook] pago sin orderData, no se puede procesar la venta:', pago.id)
+        return NextResponse.json({ error: 'Pago sin orderData' }, { status: 500 })
+      }
+
+      const order = pago.orderData as unknown as OrderPayload
+      const sellerId = order.items[0]?.sellerId
+        ?? mpPayment.collector_id?.toString()
+        ?? 'seller-mock-001'
 
       const sale = await postSale({
         orderId:  ordenId,
@@ -144,10 +152,22 @@ export async function POST(req: NextRequest) {
           productId: item.productId,
           quantity:  item.quantity,
           price:     item.price,
+          sellerId:  item.sellerId ?? sellerId,
         })),
       })
 
-      const shipment = await postShipment(order)
+      const shipment = await postShipment({
+        id:            order.orderId,
+        userId:        order.userId,
+        total:         order.total,
+        discount:      order.discount,
+        shipping:      order.shipping,
+        status:        order.status ?? 'PENDING',
+        address:       order.address,
+        originAddress: order.originAddress,
+        carrier:       order.carrier,
+        items:         order.items,
+      })
 
       await prisma.transaccion.upsert({
         where:  { pagoId: pago.id },
@@ -165,6 +185,6 @@ export async function POST(req: NextRequest) {
 
   } catch (error) {
     console.error('Error en webhook:', error)
-    return NextResponse.json({ received: true })
+    return NextResponse.json({ received: false, error: 'Error interno' }, { status: 500 })
   }
 }

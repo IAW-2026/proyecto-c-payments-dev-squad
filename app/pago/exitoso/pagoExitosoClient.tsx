@@ -19,7 +19,7 @@ export default function PagoExitosoClient() {
 
   useEffect(() => {
   const preferenceId  = searchParams.get('preference_id')
-  const orderId       = searchParams.get('external_reference')
+  const orderId       = searchParams.get('external_reference') ?? searchParams.get('order_id')
   const mpPaymentId   = searchParams.get('payment_id')
 
   if (!preferenceId && !orderId) { setEstado('error'); return }

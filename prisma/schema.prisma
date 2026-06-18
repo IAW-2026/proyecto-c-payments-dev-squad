@@ -7,16 +7,21 @@ datasource db {
 }
 
 model Pago {
-  id           String       @id @default(uuid())
-  ordenId      String
-  userId       String
-  monto        Float
-  estado       EstadoPago   @default(PENDIENTE)
-  disputas      Disputa[]
+  id      String     @id @default(uuid())
+  ordenId String
+  userId  String
+  monto   Float
+  estado  EstadoPago @default(PENDIENTE)
+
+  disputas Disputa[]
+
   preferenceId String?
-  transaccion  Transaccion?
-  createdAt    DateTime     @default(now())
-  updatedAt    DateTime     @updatedAt
+  orderData    Json?
+
+  transaccion Transaccion?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   @@map("pagos")
 }
@@ -38,6 +43,7 @@ enum EstadoPago {
   APROBADO
   RECHAZADO
 }
+
 enum EstadoDisputa {
   ABIERTA
   RESUELTA
@@ -45,14 +51,14 @@ enum EstadoDisputa {
 }
 
 model Disputa {
-  id      String         @id @default(uuid())
-  pagoId  String
-  userId  String
-  motivo  String
-  estado  EstadoDisputa  @default(ABIERTA)
-  origen  String         @default("usuario") // "usuario" | "chargeback"
-  fecha   DateTime       @default(now())
-  pago    Pago           @relation(fields: [pagoId], references: [id])
+  id     String        @id @default(uuid())
+  pagoId String
+  userId String
+  motivo String
+  estado EstadoDisputa @default(ABIERTA)
+  origen String        @default("usuario") // "usuario" | "chargeback"
+  fecha  DateTime      @default(now())
+  pago   Pago          @relation(fields: [pagoId], references: [id])
 
   @@map("disputas")
 }

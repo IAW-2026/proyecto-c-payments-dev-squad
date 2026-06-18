@@ -7,23 +7,26 @@ import ThemeToggle from '@/components/ThemeToggle'
 import { useTheme } from '@/lib/theme'
 
 interface OrderItem {
-  name:     string
-  price:    number
-  quantity: number
-  size:     number
-  color:    string | null
-  imageUrl: string | null
+  name:      string
+  price:     number
+  quantity:  number
+  size:      number
+  color:     string | null
+  imageUrl:  string | null
+  productId?: string
+  sellerId?: string
 }
 
 interface Order {
-  id:       string
-  total:    number
-  discount: number
-  shipping: number
-  status:   string
-  address:  string
-  carrier:  'MAIL' | 'PICKUP'
-  items:    OrderItem[]
+  id:            string
+  total:         number
+  discount:      number
+  shipping:      number
+  status:        string
+  address:       string
+  originAddress: string
+  carrier:       'MAIL' | 'PICKUP'
+  items:         OrderItem[]
 }
 
 interface Props {
@@ -50,17 +53,30 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
     setLoading(true)
     setError(null)
     try {
+      const payload = {
+        orderId,
+        userId,
+        total: order.total,
+        discount: order.discount,
+        shipping: order.shipping,
+        status: order.status,
+        address: order.address,
+        originAddress: order.originAddress,
+        carrier: order.carrier,
+        items: order.items,
+      }
+
       const res = await fetch('/api/payments', {
         method:  'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify({ orderId }),
+        body:    JSON.stringify(payload),
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al iniciar el pago')
       if (data.init_point) {
         window.location.href = data.init_point
       } else {
-        router.push(`/pago/exitoso?order_id=${orderId}`)
+        router.push(`/pago/exitoso?external_reference=${encodeURIComponent(orderId)}`)
       }
     } catch (e: any) {
       setError(e.message ?? 'Ocurrió un error inesperado')
