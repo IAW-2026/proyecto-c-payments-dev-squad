@@ -22,9 +22,9 @@ interface Sale {
 }
 
 const MOCK_SELLER: Seller = {
-  id:          'seller-mock-001',
-  name:        'UltraSprint Store',
-  email:       'ventas@ultrasprint.com',
+  id:          '5c68448c-0c67-4d71-915a-f5e51ddbc259',
+  name:        'Lady Gaga',
+  email:       'lady.gaga.vendedora@gmail.com',
   mpAccountId: 'MP_COLLECTOR_MOCK_001',
 }
 
@@ -72,7 +72,8 @@ export async function postSale(payload: {
     })
     if (!res.ok) throw new Error()
     return await res.json()
-  } catch {
+  } catch(e) {
+    console.error('[postSale] error:', e)
     return { ...MOCK_SALE, orderId: payload.orderId, total: payload.total }
   }
 }

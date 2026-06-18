@@ -33,7 +33,7 @@ interface Order {
 const MOCK_ORDER: Order = {
   id:       'order-mock-001',
   userId:   'user-mock-001',
-  total:    249999,
+  total:    40998.98,
   discount: 10000,
   shipping: 0,
   status:   'PENDING',
@@ -42,13 +42,13 @@ const MOCK_ORDER: Order = {
   carrier:  'MAIL',
    items: [
     {
-      name:      'Nike Dunk High Retro Premium',
-      price:     259999,
+      name:      'Gaga running Ultimate edition',
+      price:     419998.98,
       quantity:  1,
       size:      42,
       color:     'Negro',
-      imageUrl:  '/zapatillas/zapatillas-jordan.webp',
-      productId: 'product-mock-001',   // ← agregá
+      imageUrl:  'https://ae-pic-a1.aliexpress-media.com/kf/S6a1568c7575f4e59b475db8ca8d22bc9C.jpg',
+      productId: '5b01cc09-71cb-4ef9-ae54-a4c2002924cb', 
     },
   ],
 }
