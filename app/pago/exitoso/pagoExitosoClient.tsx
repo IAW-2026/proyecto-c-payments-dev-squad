@@ -111,14 +111,15 @@ export default function PagoExitosoClient() {
           <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
             Volver al inicio
           </Link>
-
-          <Link
-            href={`/envio${orderId ? `?orderId=${encodeURIComponent(orderId)}` : ''}`}
+          <a
+          href={`https://proyecto-c-shipping-dev-squad.vercel.app/dashboard/shipments/${orderId ?? ''}`}
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors"
             style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
           >
             Ver mi envío
-          </Link>
+          </a>
 
           {!disputaOk && pagoId && (
             <button

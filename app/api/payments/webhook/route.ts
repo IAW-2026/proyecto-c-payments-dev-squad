@@ -174,8 +174,10 @@ export async function POST(req: NextRequest) {
           items:         order.items,
         })
 
-        await prisma.transaccion.create({
-          data: {
+        await prisma.transaccion.upsert({
+          where:  { pagoId: pago.id },
+          update: { saleId: sale.id, shipmentId: shipment.id },
+          create: {
             pagoId:     pago.id,
             metodo:     mpPayment.payment_method_id ?? 'mercadopago',
             saleId:     sale.id,
