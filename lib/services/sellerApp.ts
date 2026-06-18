@@ -22,7 +22,7 @@ interface Sale {
 }
 
 const MOCK_SELLER: Seller = {
-  id:          '5c68448c-0c67-4d71-915a-f5e51ddbc259',
+  id:          'user_3DpOYfSLrQPxMxBXGccpbrQ1Ahd',
   name:        'Lady Gaga',
   email:       'lady.gaga.vendedora@gmail.com',
   mpAccountId: 'MP_COLLECTOR_MOCK_001',
