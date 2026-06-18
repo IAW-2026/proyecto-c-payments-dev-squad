@@ -74,11 +74,19 @@ export async function postSale(payload: {
 }): Promise<Sale> {
   if (!SELLER_APP_URL) return { ...MOCK_SALE, orderId: payload.orderId, total: payload.total }
   try {
+    console.log('SELLER_APP_URL=', SELLER_APP_URL)
+    console.log('Headers=', sellerHeaders())
     const res = await fetch(`${SELLER_APP_URL}/api/sales`, {
       method:  'POST',
       headers: sellerHeaders(),
       body:    JSON.stringify(payload),
     })
+
+    const text = await res.text()
+
+    console.log('Status:', res.status)
+    console.log('URL:', res.url)
+    console.log('Body:', text)
     if (!res.ok) throw new Error(`Seller API error: ${res.status}`)
     return await res.json()
   } catch(e) {
