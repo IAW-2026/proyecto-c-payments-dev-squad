@@ -1,10 +1,11 @@
 // lib/services/shippingApp.ts
 // Llamadas a Shipping App:
-// POST /shipments          → crea el envío pasando la orden completa
-// GET  /shipments/{order_id}
-// GET  /shipments/{order_id}/tracking
+// POST /api/shipments          → crea el envío pasando los datos obligatorios
+// GET  /api/shipments/{order_id}
+// GET  /api/shipments/{order_id}/tracking
 
 const SHIPPING_APP_URL = process.env.NEXT_PUBLIC_SHIPPING_APP_URL || ''
+const SHIPPING_API_KEY = process.env.SHIPPING_API_KEY || ''
 
 interface OrderItem {
   name:     string
@@ -23,6 +24,7 @@ interface Order {
   shipping: number
   status:   string
   address:  string
+  originAddress: string
   carrier:  'MAIL' | 'PICKUP'
   items:    OrderItem[]
 }
@@ -87,26 +89,62 @@ const MOCK_TRACKING: TrackingEvent[] = [
  * Crea el envío pasando la orden completa — shipping saca la dirección
  * y el carrier de ahí directamente.
  */
+function buildShipmentPayload(order: Order) {
+  return {
+    orderId:      order.id,
+    buyerId:      order.userId,
+    address:      order.address,
+    carrier:      order.carrier,
+    shippingCost: order.shipping,
+    items: order.items.map(item => ({
+      name:                 item.name,
+      size:                 item.size,
+      quantity:             item.quantity,
+      price:                item.price,
+      imageUrl:             item.imageUrl,
+      color:                item.color,
+      productOriginAddress: order.originAddress,
+    })),
+  }
+}
+
+function defaultShippingHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+
+  if (SHIPPING_API_KEY) {
+    headers['x-api-key'] = SHIPPING_API_KEY
+  }
+
+  return headers
+}
+
 export async function postShipment(order: Order): Promise<Shipment> {
-  if (!SHIPPING_APP_URL) return { ...MOCK_SHIPMENT, orderId: order.id, buyerId: order.userId, carrier: order.carrier, address: order.address }
+  if (!SHIPPING_APP_URL || !SHIPPING_API_KEY) {
+    return { ...MOCK_SHIPMENT, orderId: order.id, buyerId: order.userId, carrier: order.carrier, address: order.address }
+  }
   try {
-    const res = await fetch(`${SHIPPING_APP_URL}/shipments`, {
+    const res = await fetch(`${SHIPPING_APP_URL}/api/shipments`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body:    JSON.stringify(order),
+      headers: defaultShippingHeaders(),
+      body:    JSON.stringify(buildShipmentPayload(order)),
     })
-    if (!res.ok) throw new Error()
+    if (!res.ok) throw new Error(`Shipping API error: ${res.status}`)
     return await res.json()
-  } catch {
+  } catch (e: any) {
+    console.error('[postShipment] error:', e)
     return { ...MOCK_SHIPMENT, orderId: order.id, buyerId: order.userId, carrier: order.carrier, address: order.address }
   }
 }
 
 export async function getShipment(orderId: string): Promise<Shipment> {
-  if (!SHIPPING_APP_URL) return MOCK_SHIPMENT
+  if (!SHIPPING_APP_URL || !SHIPPING_API_KEY) return MOCK_SHIPMENT
   try {
-    const res = await fetch(`${SHIPPING_APP_URL}/shipments/${orderId}`)
-    if (!res.ok) throw new Error()
+    const res = await fetch(`${SHIPPING_APP_URL}/api/shipments/${orderId}`, {
+      headers: defaultShippingHeaders(),
+    })
+    if (!res.ok) throw new Error(`Shipping API error: ${res.status}`)
     return await res.json()
   } catch {
     return MOCK_SHIPMENT

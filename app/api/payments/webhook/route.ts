@@ -20,7 +20,17 @@ async function getMPPayment(id: string) {
   return res.json()
 }
 
+function verificarApiKey(req: NextRequest): boolean {
+  const apiKey = req.headers.get('x-api-key')
+  if (apiKey === null) return true // MP y frontend no mandan key
+  return apiKey === process.env.INTERNAL_API_KEY
+}
+
 export async function GET(req: NextRequest) {
+  if (!verificarApiKey(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const { searchParams } = new URL(req.url)
   const mpPaymentId  = searchParams.get('mp_payment_id')
   const preferenceId = searchParams.get('preference_id')
@@ -52,6 +62,10 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  if (!verificarApiKey(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   try {
     const body = await req.json()
     const { searchParams } = new URL(req.url)
@@ -126,6 +140,11 @@ export async function POST(req: NextRequest) {
         orderId:  ordenId,
         sellerId,
         total:    mpPayment.transaction_amount ?? pago.monto,
+        items:    order.items.map(item => ({
+          productId: item.productId,
+          quantity:  item.quantity,
+          price:     item.price,
+        })),
       })
 
       const shipment = await postShipment(order)

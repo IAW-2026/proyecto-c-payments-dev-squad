@@ -1,15 +1,16 @@
 // lib/services/sellerApp.ts
 // Llamadas a Seller App:
-// GET  /sellers/{id}   → datos del vendedor (para que MP le transfiera)
-// POST /sales          → confirmar venta al vendedor
+// GET  /api/seller/{id}  → datos del vendedor
+// POST /api/sales        → confirmar venta al vendedor
 
 const SELLER_APP_URL = process.env.NEXT_PUBLIC_SELLER_APP_URL || ''
+const SELLER_API_KEY = process.env.SELLER_API_KEY || ''
 
 interface Seller {
-  id:         string
-  name:       string
-  email:      string
-  mpAccountId: string  // ID de cuenta MP del vendedor — para split de pagos
+  id:          string
+  name:        string
+  email:       string
+  mpAccountId: string
 }
 
 interface Sale {
@@ -35,14 +36,20 @@ const MOCK_SALE: Sale = {
   total:    17099,
 }
 
-/**
- * Obtiene los datos del vendedor — necesario para saber a qué cuenta MP
- * transferirle el monto correspondiente.
- */
+function sellerHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    'Content-Type': 'application/json',
+  }
+  if (SELLER_API_KEY) headers['x-api-key'] = SELLER_API_KEY
+  return headers
+}
+
 export async function getSeller(sellerId: string): Promise<Seller> {
   if (!SELLER_APP_URL) return MOCK_SELLER
   try {
-    const res = await fetch(`${SELLER_APP_URL}/sellers/${sellerId}`)
+    const res = await fetch(`${SELLER_APP_URL}/api/seller/${sellerId}`, {
+      headers: sellerHeaders(),
+    })
     if (!res.ok) throw new Error()
     return await res.json()
   } catch {
@@ -50,20 +57,17 @@ export async function getSeller(sellerId: string): Promise<Seller> {
   }
 }
 
-/**
- * Notifica al seller que la venta fue confirmada, indicando el monto
- * que le corresponde. MP se encarga de la transferencia via marketplace.
- */
 export async function postSale(payload: {
   orderId:  string
   sellerId: string
   total:    number
+  items?:   { productId: string; quantity: number; price: number }[]
 }): Promise<Sale> {
   if (!SELLER_APP_URL) return { ...MOCK_SALE, orderId: payload.orderId, total: payload.total }
   try {
-    const res = await fetch(`${SELLER_APP_URL}/sales`, {
+    const res = await fetch(`${SELLER_APP_URL}/api/sales`, {
       method:  'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: sellerHeaders(),
       body:    JSON.stringify(payload),
     })
     if (!res.ok) throw new Error()

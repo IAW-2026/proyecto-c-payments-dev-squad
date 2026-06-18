@@ -22,7 +22,17 @@ async function getMPPayment(mpPaymentId: string) {
   return res.json()
 }
 
+function verificarApiKey(req: NextRequest): boolean {
+  const apiKey = req.headers.get('x-api-key')
+  if (apiKey === null) return true // frontend no manda key
+  return apiKey === process.env.INTERNAL_API_KEY
+}
+
 export async function GET(req: NextRequest) {
+  if (!verificarApiKey(req)) {
+    return NextResponse.json({ error: 'No autorizado' }, { status: 401 })
+  }
+
   const { searchParams } = new URL(req.url)
   const paymentId   = searchParams.get('payment_id')
   const orderId     = searchParams.get('order_id')
@@ -48,14 +58,12 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Pago no encontrado' }, { status: 404 })
     }
 
-    // Fallback: si no está aprobado, consultamos directamente a MP con el ID real
     if (pago.estado !== 'APROBADO' && mpPaymentId && process.env.MP_ACCESS_TOKEN) {
       const mpPayment = await getMPPayment(mpPaymentId)
 
       if (mpPayment) {
         const nuevoEstado = estadoMap[mpPayment.status] ?? 'PENDIENTE'
 
-        // Actualizar estado en DB siempre
         await prisma.pago.update({
           where: { id: pago.id },
           data:  { estado: nuevoEstado },
@@ -66,17 +74,22 @@ export async function GET(req: NextRequest) {
           const order    = await getOrder(ordenId)
           const sellerId = mpPayment.collector_id?.toString() ?? 'seller-mock-001'
 
-          const sale     = await postSale({
+          const sale = await postSale({
             orderId:  ordenId,
             sellerId,
             total:    mpPayment.transaction_amount ?? pago.monto,
+            items:    order.items.map(item => ({
+              productId: item.productId,
+              quantity:  item.quantity,
+              price:     item.price,
+            })),
           })
           const shipment = await postShipment(order)
           await postTransaction({
             orderId: ordenId,
-            userId: pago.userId,
-            pagoId: pago.id,
-            estado: 'APROBADO',
+            userId:  pago.userId,
+            pagoId:  pago.id,
+            estado:  'APROBADO',
           })
 
           await prisma.transaccion.create({

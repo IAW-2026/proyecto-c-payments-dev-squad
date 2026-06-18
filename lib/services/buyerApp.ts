@@ -8,12 +8,13 @@
 const BUYER_APP_URL = process.env.NEXT_PUBLIC_BUYER_APP_URL || ''
 
 interface OrderItem {
-  name:     string
-  price:    number
-  quantity: number
-  size:     number
-  color:    string | null
-  imageUrl: string | null
+  name:      string
+  price:     number
+  quantity:  number
+  size:      number
+  color:     string | null
+  imageUrl:  string | null
+  productId: string        
 }
 
 interface Order {
@@ -39,14 +40,15 @@ const MOCK_ORDER: Order = {
   address:  'Av. Rivadavia 3450, Buenos Aires, 1204',
   originAddress: 'Av. Corrientes 1234, Buenos Aires, 1043',
   carrier:  'MAIL',
-  items: [
+   items: [
     {
-      name:     'Nike Dunk High Retro Premium',
-      price:    259999,
-      quantity: 1,
-      size:     42,
-      color:    'Negro',
-      imageUrl: '/zapatillas/zapatillas-jordan.webp',
+      name:      'Nike Dunk High Retro Premium',
+      price:     259999,
+      quantity:  1,
+      size:      42,
+      color:     'Negro',
+      imageUrl:  '/zapatillas/zapatillas-jordan.webp',
+      productId: 'product-mock-001',   // ← agregá
     },
   ],
 }
