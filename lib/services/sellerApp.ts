@@ -40,8 +40,16 @@ function sellerHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  if (SELLER_API_KEY) headers['x-api-key'] = SELLER_API_KEY
-  if (process.env.SELLER_BYPASS_SECRET) headers['x-vercel-protection-bypass'] = process.env.SELLER_BYPASS_SECRET
+
+  if (SELLER_API_KEY) {
+    headers['x-internal-api-key'] = SELLER_API_KEY
+  }
+
+  if (process.env.SELLER_BYPASS_SECRET) {
+    headers['x-vercel-protection-bypass'] =
+      process.env.SELLER_BYPASS_SECRET
+  }
+
   return headers
 }
 
