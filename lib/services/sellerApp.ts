@@ -50,7 +50,7 @@ export async function getSeller(sellerId: string): Promise<Seller> {
     const res = await fetch(`${SELLER_APP_URL}/api/seller/${sellerId}`, {
       headers: sellerHeaders(),
     })
-    if (!res.ok) throw new Error()
+    if (!res.ok) throw new Error(`Seller API error: ${res.status}`)
     return await res.json()
   } catch {
     return MOCK_SELLER
@@ -70,7 +70,7 @@ export async function postSale(payload: {
       headers: sellerHeaders(),
       body:    JSON.stringify(payload),
     })
-    if (!res.ok) throw new Error()
+    if (!res.ok) throw new Error(`Seller API error: ${res.status}`)
     return await res.json()
   } catch(e) {
     console.error('[postSale] error:', e)
