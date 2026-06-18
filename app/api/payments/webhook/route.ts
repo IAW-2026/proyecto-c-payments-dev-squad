@@ -1,4 +1,3 @@
-// app/api/webhook/route.ts
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
@@ -23,7 +22,7 @@ async function getMPPayment(id: string) {
 
 function verificarApiKey(req: NextRequest): boolean {
   const apiKey = req.headers.get('x-api-key')
-  if (apiKey === null) return true // MP y frontend no mandan key
+  if (apiKey === null) return true
   return apiKey === process.env.INTERNAL_API_KEY
 }
 
@@ -99,7 +98,7 @@ export async function POST(req: NextRequest) {
     }
 
     const pago = await prisma.pago.findFirst({
-      where: preferenceId ? { preferenceId } : { ordenId },
+      where:   preferenceId ? { preferenceId } : { ordenId },
       orderBy: { createdAt: 'desc' },
     })
 
@@ -134,57 +133,64 @@ export async function POST(req: NextRequest) {
     }
 
     if (nuevoEstado === 'APROBADO') {
-      if (!pago.orderData) {
-        console.error('[webhook] pago sin orderData, no se puede procesar la venta:', pago.id)
-        return NextResponse.json({ error: 'Pago sin orderData' }, { status: 500 })
+      // Evitar procesar el mismo pago dos veces
+      const transaccionExistente = await prisma.transaccion.findUnique({
+        where: { pagoId: pago.id },
+      })
+
+      if (!transaccionExistente) {
+        if (!pago.orderData) {
+          console.error('[webhook] pago sin orderData:', pago.id)
+          return NextResponse.json({ received: true })
+        }
+
+        const order    = pago.orderData as unknown as OrderPayload
+        const sellerId = order.items[0]?.sellerId
+          ?? mpPayment.collector_id?.toString()
+          ?? 'seller-mock-001'
+
+        const sale = await postSale({
+          orderId:  ordenId,
+          sellerId,
+          total:    mpPayment.transaction_amount ?? pago.monto,
+          items:    order.items.map(item => ({
+            productId: item.productId,
+            quantity:  item.quantity,
+            price:     item.price,
+            sellerId:  item.sellerId ?? sellerId,
+          })),
+        })
+
+        const shipment = await postShipment({
+          id:            order.orderId,
+          userId:        order.userId,
+          total:         order.total,
+          discount:      order.discount,
+          shipping:      order.shipping,
+          status:        order.status ?? 'PENDING',
+          address:       order.address,
+          originAddress: order.originAddress,
+          carrier:       order.carrier,
+          items:         order.items,
+        })
+
+        await prisma.transaccion.create({
+          data: {
+            pagoId:     pago.id,
+            metodo:     mpPayment.payment_method_id ?? 'mercadopago',
+            saleId:     sale.id,
+            shipmentId: shipment.id,
+          },
+        })
+      } else {
+        console.log('[webhook] transaccion ya existente, ignorando duplicado:', pago.id)
       }
-
-      const order = pago.orderData as unknown as OrderPayload
-      const sellerId = order.items[0]?.sellerId
-        ?? mpPayment.collector_id?.toString()
-        ?? 'seller-mock-001'
-
-      const sale = await postSale({
-        orderId:  ordenId,
-        sellerId,
-        total:    mpPayment.transaction_amount ?? pago.monto,
-        items:    order.items.map(item => ({
-          productId: item.productId,
-          quantity:  item.quantity,
-          price:     item.price,
-          sellerId:  item.sellerId ?? sellerId,
-        })),
-      })
-
-      const shipment = await postShipment({
-        id:            order.orderId,
-        userId:        order.userId,
-        total:         order.total,
-        discount:      order.discount,
-        shipping:      order.shipping,
-        status:        order.status ?? 'PENDING',
-        address:       order.address,
-        originAddress: order.originAddress,
-        carrier:       order.carrier,
-        items:         order.items,
-      })
-
-      await prisma.transaccion.upsert({
-        where:  { pagoId: pago.id },
-        update: { saleId: sale.id, shipmentId: shipment.id },
-        create: {
-          pagoId:     pago.id,
-          metodo:     mpPayment.payment_method_id ?? 'mercadopago',
-          saleId:     sale.id,
-          shipmentId: shipment.id,
-        },
-      })
     }
 
     return NextResponse.json({ received: true })
 
   } catch (error) {
     console.error('Error en webhook:', error)
-    return NextResponse.json({ received: false, error: 'Error interno' }, { status: 500 })
+    return NextResponse.json({ received: true })
   }
 }

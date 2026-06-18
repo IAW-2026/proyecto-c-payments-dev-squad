@@ -83,12 +83,11 @@ export async function postSale(payload: {
     })
 
     const text = await res.text()
-
     console.log('Status:', res.status)
     console.log('URL:', res.url)
     console.log('Body:', text)
     if (!res.ok) throw new Error(`Seller API error: ${res.status}`)
-    return await res.json()
+    return JSON.parse(text)
   } catch(e) {
     console.error('[postSale] error:', e)
     return { ...MOCK_SALE, orderId: payload.orderId, total: payload.total }
