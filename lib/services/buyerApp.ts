@@ -48,7 +48,7 @@ export const MOCK_ORDER: Order = {
       color:     'Negro',
       imageUrl:  'https://ae-pic-a1.aliexpress-media.com/kf/S6a1568c7575f4e59b475db8ca8d22bc9C.jpg',
       productId: '5b01cc09-71cb-4ef9-ae54-a4c2002924cb',
-      sellerId:  'user_3DpOYfSLrQPxMxBXGccpbrQ1Ahd',
+      sellerId:  '5c68448c-0c67-4d71-915a-f5e51ddbc259',
     },
   ],
 }
