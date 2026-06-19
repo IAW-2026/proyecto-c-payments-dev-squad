@@ -1,7 +1,4 @@
 // lib/services/buyerApp.ts
-// Utilidades relacionadas a órdenes y notificaciones de transacción.
-// La Buyer App no expone un endpoint GET de órdenes; el pago recibe la orden directamente por POST.
-
 const BUYER_APP_URL = process.env.NEXT_PUBLIC_BUYER_APP_URL || ''
 const BUYER_API_KEY = process.env.BUYER_API_KEY || ''
 
@@ -48,7 +45,7 @@ export const MOCK_ORDER: Order = {
       color:     'Negro',
       imageUrl:  'https://ae-pic-a1.aliexpress-media.com/kf/S6a1568c7575f4e59b475db8ca8d22bc9C.jpg',
       productId: '5b01cc09-71cb-4ef9-ae54-a4c2002924cb',
-      sellerId:  '5c68448c-0c67-4d71-915a-f5e51ddbc259',
+      sellerId:  'user_3DpOYfSLrQPxMxBXGccpbrQ1Ahd',
     },
   ],
 }
@@ -65,7 +62,7 @@ function buyerHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   }
-  if (BUYER_API_KEY) headers['x-api-key'] = BUYER_API_KEY
+  if (BUYER_API_KEY) headers['buyer-key'] = BUYER_API_KEY
   return headers
 }
 
@@ -74,10 +71,6 @@ export function calcularTotalOrden(order: Order): number {
   return subtotal + order.shipping - order.discount
 }
 
-/**
- * Crea o sincroniza una orden en Buyer App vía POST /api/orders.
- * Si `BUYER_APP_URL` no está configurada, devuelve la orden tal cual (modo mock).
- */
 export async function postOrder(order: Order): Promise<Order> {
   if (!BUYER_APP_URL) return order
   try {
@@ -94,9 +87,6 @@ export async function postOrder(order: Order): Promise<Order> {
   }
 }
 
-/**
- * Notifica a Buyer App que la transacción fue completada.
- */
 export async function postTransaction(payload: {
   orderId: string
   userId:  string
@@ -114,6 +104,22 @@ export async function postTransaction(payload: {
     return await res.json()
   } catch (e) {
     console.error('[postTransaction] error:', e)
+    return { ok: true }
+  }
+}
+
+export async function patchOrderStatus(orderId: string, status: string) {
+  if (!BUYER_APP_URL) return { ok: true }
+  try {
+    const res = await fetch(`${BUYER_APP_URL}/api/orders/${orderId}/status`, {
+      method:  'PATCH',
+      headers: buyerHeaders(),
+      body:    JSON.stringify({ status }),
+    })
+    if (!res.ok) throw new Error(`Buyer API error: ${res.status}`)
+    return await res.json()
+  } catch (e) {
+    console.error('[patchOrderStatus] error:', e)
     return { ok: true }
   }
 }

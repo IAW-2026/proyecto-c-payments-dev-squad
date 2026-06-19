@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
+import { patchOrderStatus } from '@/lib/services/buyerApp'
 import type { OrderPayload } from '@/app/api/payments/route'
 
 const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
@@ -133,7 +134,6 @@ export async function POST(req: NextRequest) {
     }
 
     if (nuevoEstado === 'APROBADO') {
-      // Evitar procesar el mismo pago dos veces
       const transaccionExistente = await prisma.transaccion.findUnique({
         where: { pagoId: pago.id },
       })
@@ -173,6 +173,8 @@ export async function POST(req: NextRequest) {
           carrier:       order.carrier,
           items:         order.items,
         })
+
+        await patchOrderStatus(ordenId, 'PAID')
 
         await prisma.transaccion.upsert({
           where:  { pagoId: pago.id },
