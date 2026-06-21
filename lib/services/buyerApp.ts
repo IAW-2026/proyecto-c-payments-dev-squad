@@ -78,8 +78,15 @@ export async function getOrder(orderId: string): Promise<Order | null> {
       method:  'GET',
       headers: buyerHeaders(),
     })
-    if (!res.ok) return null
-    return await res.json()
+    console.log('[getOrder] status:', res.status, 'url:', res.url)
+    if (!res.ok) {
+      const text = await res.text()
+      console.log('[getOrder] error body:', text)
+      return null
+    }
+    const data = await res.json()
+    console.log('[getOrder] data recibida:', JSON.stringify(data).slice(0, 200))
+    return data
   } catch (e) {
     console.error('[getOrder] error:', e)
     return null
