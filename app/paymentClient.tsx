@@ -53,10 +53,12 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
     setLoading(true)
     setError(null)
     try {
+      const totalConDescuento = order.total - order.discount
+
       const payload = {
         orderId,
         userId,
-        total: order.total,
+        total: totalConDescuento, 
         discount: order.discount,
         shipping: order.shipping,
         status: order.status,
@@ -327,7 +329,7 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
             >
               {loading
                 ? <><span className="animate-spin inline-block">⏳</span> <span className="hidden sm:inline">Procesando...</span></>
-                : <>🔒 <span className="hidden sm:inline">Pagar</span> $ {order.total.toLocaleString('es-AR')}</>
+                : <>🔒 <span className="hidden sm:inline">Pagar</span> $ {(order.total - order.discount).toLocaleString('es-AR')}</>
               }
             </button>
 
