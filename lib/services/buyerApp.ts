@@ -29,7 +29,7 @@ export interface Order {
 export const MOCK_ORDER: Order = {
   id:            'order-mock-001',
   userId:        'user-mock-001',
-  total:         409998.98,
+  total:         419998.98,
   discount:      10000,
   shipping:      0,
   status:        'PENDING',
