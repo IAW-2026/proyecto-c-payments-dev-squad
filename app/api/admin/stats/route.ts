@@ -21,6 +21,8 @@ export async function GET() {
     pagos7d,
     pagos30d,
     pagos365d,
+    rechazadas7d,
+    rechazadas30d,
     exitosas7d,
     disputas7d,
     todasTransferencias,
@@ -32,37 +34,43 @@ export async function GET() {
       select: { monto: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     }),
-
     // Montos por día — últimos 30 días (aprobados)
     prisma.pago.findMany({
       where: { estado: 'APROBADO', createdAt: { gte: startOf(30) } },
       select: { monto: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     }),
-
     // Montos por mes — último año (aprobados)
     prisma.pago.findMany({
       where: { estado: 'APROBADO', createdAt: { gte: startOf(365) } },
       select: { monto: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     }),
-
+    // NUEVO: Montos por día — últimos 7 días (rechazados)
+    prisma.pago.findMany({
+      where: { estado: 'RECHAZADO', createdAt: { gte: startOf(7) } },
+      select: { monto: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    }),
+    // NUEVO: Montos por día — últimos 30 días (rechazados)
+    prisma.pago.findMany({
+      where: { estado: 'RECHAZADO', createdAt: { gte: startOf(30) } },
+      select: { monto: true, createdAt: true },
+      orderBy: { createdAt: 'asc' },
+    }),
     // Cantidad de exitosas últimos 7 días
     prisma.pago.count({
       where: { estado: 'APROBADO', createdAt: { gte: startOf(7) } },
     }),
-
     // Cantidad de disputas últimos 7 días
     prisma.disputa.count({
       where: { fecha: { gte: startOf(7) } },
     }),
-
     // Todas las transferencias (para el listado)
     prisma.pago.findMany({
       include: { transaccion: true },
       orderBy: { createdAt: 'desc' },
     }),
-
     // Todas las disputas (para el listado)
     prisma.disputa.findMany({
       include: { pago: true },
@@ -96,11 +104,19 @@ export async function GET() {
       ultimos30dias: agruparPorDia(pagos30d),
       ultimoAnio:    agruparPorMes(pagos365d),
     },
+    // NUEVO: misma forma que "charts" pero solo con estado RECHAZADO
+    chartsRechazadas: {
+      ultimos7dias:  agruparPorDia(rechazadas7d),
+      ultimos30dias: agruparPorDia(rechazadas30d),
+    },
     kpis: {
       exitosas7d,
       disputas7d,
       montoTotal7d:  pagos7d.reduce((s, p) => s + p.monto, 0),
       montoTotal30d: pagos30d.reduce((s, p) => s + p.monto, 0),
+      // NUEVO: opcional, para un card de conteo/monto si lo querés sumar después
+      rechazadas7d:      rechazadas7d.length,
+      montoRechazado7d:  rechazadas7d.reduce((s, p) => s + p.monto, 0),
     },
     transferencias: todasTransferencias.map(p => ({
       id:           p.id,
