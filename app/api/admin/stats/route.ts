@@ -1,7 +1,7 @@
 // app/api/admin/stats/route.ts
 // GET /api/admin/stats
 // Devuelve estadísticas de pagos para el dashboard de admin.
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { isAdmin } from '@/lib/auth'
 
@@ -12,8 +12,17 @@ function startOf(daysAgo: number): Date {
   return d
 }
 
-export async function GET() {
-  if (!(await isAdmin())) {
+// Permite el acceso de dos formas:
+// 1) Sesión de Clerk con rol admin (uso normal desde el panel web)
+// 2) Header x-api-key correcto (uso server-to-server: Analytics, Control Plane)
+async function autorizado(req: NextRequest): Promise<boolean> {
+  const apiKey = req.headers.get('x-api-key')
+  if (apiKey && apiKey === process.env.INTERNAL_API_KEY) return true
+  return await isAdmin()
+}
+
+export async function GET(req: NextRequest) {
+  if (!(await autorizado(req))) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
 
@@ -46,13 +55,13 @@ export async function GET() {
       select: { monto: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     }),
-    // NUEVO: Montos por día — últimos 7 días (rechazados)
+    // Montos por día — últimos 7 días (rechazados)
     prisma.pago.findMany({
       where: { estado: 'RECHAZADO', createdAt: { gte: startOf(7) } },
       select: { monto: true, createdAt: true },
       orderBy: { createdAt: 'asc' },
     }),
-    // NUEVO: Montos por día — últimos 30 días (rechazados)
+    // Montos por día — últimos 30 días (rechazados)
     prisma.pago.findMany({
       where: { estado: 'RECHAZADO', createdAt: { gte: startOf(30) } },
       select: { monto: true, createdAt: true },
@@ -104,7 +113,6 @@ export async function GET() {
       ultimos30dias: agruparPorDia(pagos30d),
       ultimoAnio:    agruparPorMes(pagos365d),
     },
-    // NUEVO: misma forma que "charts" pero solo con estado RECHAZADO
     chartsRechazadas: {
       ultimos7dias:  agruparPorDia(rechazadas7d),
       ultimos30dias: agruparPorDia(rechazadas30d),
@@ -114,7 +122,6 @@ export async function GET() {
       disputas7d,
       montoTotal7d:  pagos7d.reduce((s, p) => s + p.monto, 0),
       montoTotal30d: pagos30d.reduce((s, p) => s + p.monto, 0),
-      // NUEVO: opcional, para un card de conteo/monto si lo querés sumar después
       rechazadas7d:      rechazadas7d.length,
       montoRechazado7d:  rechazadas7d.reduce((s, p) => s + p.monto, 0),
     },
