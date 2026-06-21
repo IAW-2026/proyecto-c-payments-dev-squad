@@ -71,6 +71,21 @@ export function calcularTotalOrden(order: Order): number {
   return subtotal + order.shipping - order.discount
 }
 
+export async function getOrder(orderId: string): Promise<Order | null> {
+  if (!BUYER_APP_URL) return null
+  try {
+    const res = await fetch(`${BUYER_APP_URL}/api/orders/${orderId}`, {
+      method:  'GET',
+      headers: buyerHeaders(),
+    })
+    if (!res.ok) return null
+    return await res.json()
+  } catch (e) {
+    console.error('[getOrder] error:', e)
+    return null
+  }
+}
+
 export async function postOrder(order: Order): Promise<Order> {
   if (!BUYER_APP_URL) return order
   try {

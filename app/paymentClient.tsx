@@ -46,19 +46,17 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
 
   useEffect(() => setMounted(true), [])
 
-  const firstItem = order.items[0]
-  const subtotal  = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
+  const subtotal   = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
+  const totalFinal = order.total
 
   async function handlePagar() {
     setLoading(true)
     setError(null)
     try {
-      const totalConDescuento = order.total - order.discount
-
       const payload = {
         orderId,
         userId,
-        total: totalConDescuento, 
+        total: totalFinal,
         discount: order.discount,
         shipping: order.shipping,
         status: order.status,
@@ -169,7 +167,6 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
               <div className="flex flex-col gap-3 sm:gap-4">
                 {order.items.map((item, i) => (
                   <div key={i} className="flex gap-2 sm:gap-4 items-start">
-                    {/* Imagen */}
                     <div className="rounded-lg sm:rounded-xl overflow-hidden shrink-0 border" style={{ borderColor: 'var(--color-border)' }}>
                       {item.imageUrl ? (
                         <img src={item.imageUrl} alt={item.name} className="w-16 h-16 sm:w-24 sm:h-24 object-cover" />
@@ -179,8 +176,6 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                         </div>
                       )}
                     </div>
-
-                    {/* Info */}
                     <div className="flex-1 min-w-0">
                       <p className="font-bold text-sm sm:text-base" style={{ color: 'var(--color-foreground)', wordBreak: 'break-word' }}>
                         {item.name}
@@ -208,13 +203,10 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                 ))}
               </div>
 
-              {/* Dirección y envío */}
               <div className="mt-2 sm:mt-4 pt-2 sm:pt-4 border-t flex items-center gap-2 text-xs" style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}>
                 <span>{order.carrier === 'MAIL' ? '🚚' : '🏪'}</span>
                 <span style={{ wordBreak: 'break-word' }}>
-                  {order.carrier === 'MAIL'
-                    ? `Envío a: ${order.address}`
-                    : 'Retiro en tienda'}
+                  {order.carrier === 'MAIL' ? `Envío a: ${order.address}` : 'Retiro en tienda'}
                 </span>
               </div>
             </section>
@@ -249,16 +241,16 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                   </div>
                 )}
                 <div
-                  className="flex justify-between font-black text-sm sm:text-base pt-2 sm:pt-4 mt-1 sm:mt-1 border-t"
+                  className="flex justify-between font-black text-sm sm:text-base pt-2 sm:pt-4 mt-1 border-t"
                   style={{ borderColor: 'var(--color-border)', color: 'var(--color-foreground)' }}
                 >
                   <span>Total</span>
-                  <span>$ {order.total.toLocaleString('es-AR')}</span>
+                  <span>$ {totalFinal.toLocaleString('es-AR')}</span>
                 </div>
               </div>
             </section>
 
-            {/* Info pills — solo lo que es dato real */}
+            {/* Info pills */}
             <div className="grid grid-cols-2 gap-2 sm:gap-3">
               <div
                 className="rounded-lg sm:rounded-2xl p-3 sm:p-4 text-center border"
@@ -269,8 +261,18 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                   {order.carrier === 'MAIL' ? '🚚 Envío' : '🏪 Retiro'}
                 </p>
               </div>
+              <div
+                className="rounded-lg sm:rounded-2xl p-3 sm:p-4 text-center border"
+                style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
+              >
+                <p className="text-xs mb-0.5 sm:mb-1" style={{ color: 'var(--color-muted)' }}>Modalidad</p>
+                <p className="font-black text-xs sm:text-sm" style={{ color: 'var(--color-foreground)' }}>
+                  {order.carrier === 'MAIL' ? '📦 Domicilio' : '🏠 Sucursal'}
+                </p>
+              </div>
             </div>
-          </div>
+
+          </div>{/* cierra LEFT */}
 
           {/* RIGHT — Método de pago */}
           <aside
@@ -329,7 +331,7 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
             >
               {loading
                 ? <><span className="animate-spin inline-block">⏳</span> <span className="hidden sm:inline">Procesando...</span></>
-                : <>🔒 <span className="hidden sm:inline">Pagar</span> $ {(order.total - order.discount).toLocaleString('es-AR')}</>
+                : <>🔒 <span className="hidden sm:inline">Pagar</span> $ {totalFinal.toLocaleString('es-AR')}</>
               }
             </button>
 
@@ -342,7 +344,7 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
             </div>
           </aside>
 
-        </div>
+        </div>{/* cierra grid */}
       </div>
     </main>
   )
