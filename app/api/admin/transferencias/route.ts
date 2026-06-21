@@ -1,12 +1,17 @@
 // app/api/admin/transferencias/route.ts
-// GET /api/admin/transferencias?page=&perPage=&q=&estado=
-import { NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { isAdmin } from '@/lib/auth'
 
-export async function GET(req: Request) {
+async function autorizado(req: NextRequest): Promise<boolean> {
+  const apiKey = req.headers.get('x-api-key')
+  if (apiKey && apiKey === process.env.INTERNAL_API_KEY) return true
+  return await isAdmin()
+}
+
+export async function GET(req: NextRequest) {
   try {
-    if (!(await isAdmin())) {
+    if (!(await autorizado(req))) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 

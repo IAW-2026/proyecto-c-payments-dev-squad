@@ -1,15 +1,20 @@
 // app/api/disputes/[id]/route.ts
-// PATCH /api/disputes/:id — el admin cambia el estado
 import { NextRequest, NextResponse } from 'next/server'
 import { isAdmin } from '@/lib/auth'
 import { prisma } from '@/lib/db'
+
+async function autorizado(req: NextRequest): Promise<boolean> {
+  const apiKey = req.headers.get('x-api-key')
+  if (apiKey && apiKey === process.env.INTERNAL_API_KEY) return true
+  return await isAdmin()
+}
 
 export async function PATCH(
   req: NextRequest,
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
-    if (!(await isAdmin())) {
+    if (!(await autorizado(req))) {
       return NextResponse.json({ error: 'No autorizado' }, { status: 403 })
     }
 
