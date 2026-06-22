@@ -37,6 +37,9 @@ export async function calcularCostoEnvio(
   destAddress:   string
 ): Promise<number> {
   if (!ORS_API_KEY) return 0
+  if (!originAddress || !destAddress) return 0
+  if (originAddress.trim() === destAddress.trim()) return 0
+  if (originAddress === 'No address') return 0
   try {
     const dirs = splitDirecciones(originAddress)
     const dest = await geocode(destAddress)
