@@ -168,6 +168,18 @@ export async function POST(req: NextRequest) {
             // por simplicidad mandá la última (que según el log de Sofi es la misma repetida)
             dirs[dirs.length - 1]
 
+            console.log('[webhook] postShipment payload:', JSON.stringify({
+  id:            order.orderId,
+  userId:        order.userId,
+  total:         order.total,
+  discount:      order.discount,
+  shipping:      order.shipping,
+  status:        order.status ?? 'PENDING',
+  address:       order.address,
+  originAddress,
+  carrier:       order.carrier,
+  items:         order.items,
+}))
         const shipment = await postShipment({
           id:            order.orderId,
           userId:        order.userId,

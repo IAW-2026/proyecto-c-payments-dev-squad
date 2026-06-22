@@ -136,7 +136,11 @@ export async function postShipment(order: Order): Promise<Shipment> {
       headers: defaultShippingHeaders(),
       body:    JSON.stringify(buildShipmentPayload(order)),
     })
-    if (!res.ok) throw new Error(`Shipping API error: ${res.status}`)
+    if (!res.ok) {
+  const text = await res.text()
+  console.error('[postShipment] error body:', text)
+  throw new Error(`Shipping API error: ${res.status}`)
+}
     const data = await res.json()
     return normalizeShipment(data, order)
   } catch (e: any) {
