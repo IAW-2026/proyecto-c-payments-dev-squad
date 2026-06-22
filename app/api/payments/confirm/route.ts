@@ -93,7 +93,7 @@ export async function GET(req: NextRequest) {
             })
 
             const shipment = await postShipment({
-              id:            order.orderId,
+              orderId:       order.orderId,  // ← era id
               userId:        order.userId,
               total:         order.total,
               discount:      order.discount,
@@ -146,18 +146,18 @@ export async function GET(req: NextRequest) {
           })),
         })
 
-        const shipment = await postShipment({
-          id:            order.orderId,
-          userId:        order.userId,
-          total:         order.total,
-          discount:      order.discount,
-          shipping:      order.shipping,
-          status:        order.status ?? 'PENDING',
-          address:       order.address,
-          originAddress: order.originAddress,
-          carrier:       order.carrier,
-          items:         order.items,
-        })
+            const shipment = await postShipment({
+              orderId:       order.orderId,  // ← era id
+              userId:        order.userId,
+              total:         order.total,
+              discount:      order.discount,
+              shipping:      order.shipping,
+              status:        order.status ?? 'PENDING',
+              address:       order.address,
+              originAddress: order.originAddress,
+              carrier:       order.carrier,
+              items:         order.items,
+            })
 
         await postTransaction({ orderId: order.orderId, userId: pago.userId, pagoId: pago.id, estado: 'APROBADO' })
         await patchOrderStatus(order.orderId, 'PAID')
