@@ -133,7 +133,7 @@ export async function postTransaction(payload: {
 export async function patchOrderStatus(orderId: string, status: string) {
   if (!BUYER_APP_URL) return { ok: true }
   try {
-    const res = await fetch(`${BUYER_APP_URL}/api/orders/${orderId}`, {
+    const res = await fetch(`${BUYER_APP_URL}/api/orders/${orderId}/status`, {
       method:  'PATCH',
       headers: buyerHeaders(),
       body:    JSON.stringify({ status }),

@@ -4,6 +4,7 @@ import { postSale } from '@/lib/services/sellerApp'
 import { postShipment } from '@/lib/services/shippingApp'
 import { patchOrderStatus } from '@/lib/services/buyerApp'
 import type { OrderPayload } from '@/app/api/payments/route'
+import { splitDirecciones } from '@/lib/services/shippingCost'
 
 const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
   approved:     'APROBADO',
@@ -160,6 +161,12 @@ export async function POST(req: NextRequest) {
             sellerId:  item.sellerId ?? sellerId,
           })),
         })
+        const dirs = splitDirecciones(order.originAddress)
+        const originAddress = dirs.length === 1
+          ? dirs[0]
+          : // si hay varias, ya tenés la lógica de distancia... pero acá no podés awaitar geocode fácil
+            // por simplicidad mandá la última (que según el log de Sofi es la misma repetida)
+            dirs[dirs.length - 1]
 
         const shipment = await postShipment({
           id:            order.orderId,

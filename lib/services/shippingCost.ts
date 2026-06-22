@@ -21,7 +21,7 @@ async function getDistanceKm(from: [number, number], to: [number, number]): Prom
   return meters / 1000
 }
 
-function splitDirecciones(raw: string): string[] {
+export function splitDirecciones(raw: string): string[] {
   // Separa en cada punto donde aparece una calle con número (ej: "Av. Colón 1234")
   // que NO esté al inicio del string
   const dirs = raw
