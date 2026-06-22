@@ -181,14 +181,14 @@ export async function POST(req: NextRequest) {
   items:         order.items,
 }))
         const shipment = await postShipment({
-          id:            order.orderId,
+          orderId:       order.orderId,
           userId:        order.userId,
           total:         order.total,
           discount:      order.discount,
           shipping:      order.shipping,
           status:        order.status ?? 'PENDING',
           address:       order.address,
-          originAddress: order.originAddress,
+          originAddress,
           carrier:       order.carrier,
           items:         order.items,
         })

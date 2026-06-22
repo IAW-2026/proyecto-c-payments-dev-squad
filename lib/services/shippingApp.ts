@@ -1,9 +1,4 @@
 // lib/services/shippingApp.ts
-// Llamadas a Shipping App:
-// POST /api/shipments          → crea el envío pasando los datos obligatorios
-// GET  /api/shipments/{order_id}
-// GET  /api/shipments/{order_id}/tracking
-
 const SHIPPING_APP_URL = process.env.NEXT_PUBLIC_SHIPPING_APP_URL || ''
 const SHIPPING_API_KEY = process.env.SHIPPING_API_KEY || ''
 
@@ -17,7 +12,7 @@ interface OrderItem {
 }
 
 interface Order {
-  id:            string
+  orderId:       string
   userId:        string
   total:         number
   discount:      number
@@ -87,7 +82,7 @@ const MOCK_TRACKING: TrackingEvent[] = [
 
 function buildShipmentPayload(order: Order) {
   return {
-    orderId:      order.id,
+    orderId:      order.orderId,
     buyerId:      order.userId,
     address:      order.address,
     carrier:      order.carrier,
@@ -115,7 +110,7 @@ function defaultShippingHeaders(): Record<string, string> {
 function normalizeShipment(data: any, order: Order): Shipment {
   return {
     id:                String(data.id ?? 'ship-mock-001'),
-    orderId:           String(data.orderId ?? order.id),
+    orderId:           String(data.orderId ?? order.orderId),
     buyerId:           String(data.buyerId ?? order.userId),
     status:            data.status ?? 'pendiente',
     carrier:           data.carrier ?? order.carrier,
@@ -128,7 +123,7 @@ function normalizeShipment(data: any, order: Order): Shipment {
 
 export async function postShipment(order: Order): Promise<Shipment> {
   if (!SHIPPING_APP_URL || !SHIPPING_API_KEY) {
-    return { ...MOCK_SHIPMENT, orderId: order.id, buyerId: order.userId, carrier: order.carrier, address: order.address }
+    return { ...MOCK_SHIPMENT, orderId: order.orderId, buyerId: order.userId, carrier: order.carrier, address: order.address }
   }
   try {
     const res = await fetch(`${SHIPPING_APP_URL}/api/shipments`, {
@@ -137,15 +132,15 @@ export async function postShipment(order: Order): Promise<Shipment> {
       body:    JSON.stringify(buildShipmentPayload(order)),
     })
     if (!res.ok) {
-  const text = await res.text()
-  console.error('[postShipment] error body:', text)
-  throw new Error(`Shipping API error: ${res.status}`)
-}
+      const text = await res.text()
+      console.error('[postShipment] error body:', text)
+      throw new Error(`Shipping API error: ${res.status}`)
+    }
     const data = await res.json()
     return normalizeShipment(data, order)
   } catch (e: any) {
     console.error('[postShipment] error:', e)
-    return { ...MOCK_SHIPMENT, orderId: order.id, buyerId: order.userId, carrier: order.carrier, address: order.address }
+    return { ...MOCK_SHIPMENT, orderId: order.orderId, buyerId: order.userId, carrier: order.carrier, address: order.address }
   }
 }
 
@@ -157,7 +152,7 @@ export async function getShipment(orderId: string): Promise<Shipment> {
     })
     if (!res.ok) throw new Error(`Shipping API error: ${res.status}`)
     const data = await res.json()
-    return normalizeShipment(data, { id: orderId } as Order)
+    return normalizeShipment(data, { orderId } as Order)
   } catch {
     return MOCK_SHIPMENT
   }
