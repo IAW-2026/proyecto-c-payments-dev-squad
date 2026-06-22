@@ -23,8 +23,8 @@ export default function PagoPendienteClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Tu pago está siendo procesado. Te notificaremos cuando se confirme.
         </p>
-        <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base text-white transition-colors" style={{ backgroundColor: 'var(--color-info)' }}>
-          Volver al inicio
+        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+          Volver al inicio  
         </Link>
       </div>
     </main>

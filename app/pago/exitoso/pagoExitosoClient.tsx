@@ -126,7 +126,7 @@ export default function PagoExitosoClient() {
               onClick={() => setModal(true)}
               className="text-xs sm:text-sm transition-colors underline" style={{ color: 'var(--color-muted)' }}
             >
-              ¿Tuviste un problema con tu compra? Iniciá una disputa
+              ¿Tuviste un problema con tu compra? Presenta una queja y lo resolveremos lo antes posible.
             </button>
           )}
         </div>
@@ -191,8 +191,8 @@ export default function PagoExitosoClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Recibimos tu pago pero aún está siendo procesado. Te notificaremos cuando se confirme.
         </p>
-        <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-info)', color: 'white' }}>
-          Volver al inicio
+        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+          Volver al inicio  
         </Link>
       </div>
     </main>
@@ -206,8 +206,8 @@ export default function PagoExitosoClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Si realizaste el pago, no te preocupes — lo procesaremos igual. Revisá tu email.
         </p>
-        <Link href="/" className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base text-white transition-colors" style={{ backgroundColor: 'var(--color-danger)' }}>
-          Volver al inicio
+        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+          Volver al inicio  
         </Link>
       </div>
     </main>
