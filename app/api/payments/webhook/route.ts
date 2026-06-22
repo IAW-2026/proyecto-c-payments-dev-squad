@@ -205,12 +205,12 @@ export async function POST(req: NextRequest) {
 
         await prisma.transaccion.upsert({
           where:  { pagoId: pago.id },
-          update: { saleId: sale.id, shipmentId: shipment.id },
+          update: { saleId: sale.id, shipmentId: String(shipment.id) },
           create: {
             pagoId:     pago.id,
             metodo:     mpPayment.payment_method_id ?? 'mercadopago',
             saleId:     sale.id,
-            shipmentId: shipment.id,
+            shipmentId: String(shipment.id),
           },
         })
       } else {
