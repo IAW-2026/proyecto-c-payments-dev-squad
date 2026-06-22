@@ -18,6 +18,9 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
   const { orderId = 'order-mock-001' } = await searchParams
 
+  if (!orderId || orderId.includes('.')) {
+    redirect('/')
+  }
   // Intentar obtener la orden desde Buyer App (Sofi expuso GET /api/orders/[id])
   let order = orderId ? await getOrder(orderId) : null
   if (!order) {
