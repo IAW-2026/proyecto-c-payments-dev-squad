@@ -23,17 +23,24 @@ export default async function PaymentsPage({ searchParams }: Props) {
   }
   // Intentar obtener la orden desde Buyer App (Sofi expuso GET /api/orders/[id])
   let order = orderId ? await getOrder(orderId) : null
+
   if (!order) {
+    console.log('[page] getOrder returned null, usando MOCK_ORDER')
     // Fallback a MOCK_ORDER si Buyer App no responde o no hay BUYER_APP_URL
     order = { ...MOCK_ORDER, id: orderId, userId }
   } else {
+    console.log('[page] getOrder OK, shipping:', order.shipping, 'originAddress:', JSON.stringify(order.originAddress), 'address:', JSON.stringify(order.address))
     order.userId = userId
   }
 
   // Calcular costo de envío solo si es MAIL y shipping es 0,
   // luego recalcular el total desde los items, el envío y el descuento.
   if (order.shipping === 0) {
+    console.log('[page] Calculando costo de envío...')
     order.shipping = await calcularCostoEnvio(order.originAddress, order.address)
+    console.log('[page] Resultado calcularCostoEnvio:', order.shipping)
+  } else {
+    console.log('[page] shipping ya definido:', order.shipping)
   }
   order.total = calcularTotalOrden(order)
 
