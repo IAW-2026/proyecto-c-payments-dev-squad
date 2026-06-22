@@ -21,21 +21,38 @@ async function getDistanceKm(from: [number, number], to: [number, number]): Prom
   return meters / 1000
 }
 
+function splitDirecciones(raw: string): string[] {
+  // Separa en cada punto donde aparece una calle con número (ej: "Av. Colón 1234")
+  // que NO esté al inicio del string
+  const dirs = raw
+    .split(/,\s*(?=[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ.]+\s+\d)/)
+    .map(d => d.trim())
+    .filter(Boolean)
+
+  return dirs.length > 0 ? dirs : [raw.trim()]
+}
+
 export async function calcularCostoEnvio(
   originAddress: string,
   destAddress:   string
 ): Promise<number> {
   if (!ORS_API_KEY) return 0
   try {
-    const [from, to] = await Promise.all([
-      geocode(originAddress),
-      geocode(destAddress),
-    ])
-    const km    = await getDistanceKm(from, to)
-    const costo = Math.round(km * PRICE_PER_KM)
-    return costo
+    const dirs = splitDirecciones(originAddress)
+    const dest = await geocode(destAddress)
+
+    // Geocodificar todas las origins en paralelo
+    const origenCoords = await Promise.all(dirs.map(d => geocode(d)))
+
+    // Calcular distancia de cada origen al destino
+    const distancias = await Promise.all(
+      origenCoords.map(from => getDistanceKm(from, dest))
+    )
+
+    const maxKm = Math.max(...distancias)
+    return Math.round(maxKm * PRICE_PER_KM)
   } catch (error) {
     console.error('Error calculando costo de envío:', error)
-    return 0  // fallback silencioso
+    return 0
   }
 }
