@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
-import { postShipment } from '@/lib/services/shippingApp'
 import { patchOrderStatus } from '@/lib/services/buyerApp'
 import type { OrderPayload } from '@/app/api/payments/route'
 import { splitDirecciones } from '@/lib/services/shippingCost'
@@ -26,6 +25,42 @@ function verificarApiKey(req: NextRequest): boolean {
   const apiKey = req.headers.get('x-api-key')
   if (apiKey === null) return true
   return apiKey === process.env.INTERNAL_API_KEY
+}
+
+async function enviarShipment(order: OrderPayload, originAddress: string) {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/api/shipments`, {
+    method:  'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key':    process.env.SHIPPING_API_KEY ?? '',
+    },
+    body: JSON.stringify({
+      orderId:      order.orderId,
+      buyerId:      order.userId,
+      address:      order.address,
+      carrier:      order.carrier,
+      shippingCost: order.shipping,
+      items: order.items.map((item: any) => ({
+        name:                 item.name,
+        size:                 item.size,
+        quantity:             item.quantity,
+        price:                item.price,
+        imageUrl:             item.imageUrl,
+        color:                item.color,
+        productOriginAddress: originAddress,
+      })),
+    }),
+  })
+  const text = await res.text()
+  if (!res.ok) {
+    console.error('[enviarShipment] error body:', text)
+    return { id: 'ship-fallback' }
+  }
+  try {
+    return JSON.parse(text)
+  } catch {
+    return { id: 'ship-fallback' }
+  }
 }
 
 export async function GET(req: NextRequest) {
@@ -72,11 +107,8 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { searchParams } = new URL(req.url)
 
-    const mpPaymentId =
-      body.data?.id ||
-      searchParams.get('id')
-
-    const type = body.type || searchParams.get('topic')
+    const mpPaymentId = body.data?.id || searchParams.get('id')
+    const type        = body.type || searchParams.get('topic')
 
     if (type !== 'payment') {
       return NextResponse.json({ received: true })
@@ -161,38 +193,13 @@ export async function POST(req: NextRequest) {
             sellerId:  item.sellerId ?? sellerId,
           })),
         })
-        const dirs = splitDirecciones(order.originAddress)
-        const originAddress = dirs.length === 1
-          ? dirs[0]
-          : // si hay varias, ya tenés la lógica de distancia... pero acá no podés awaitar geocode fácil
-            // por simplicidad mandá la última (que según el log de Sofi es la misma repetida)
-            dirs[dirs.length - 1]
-console.log('[webhook] order.userId:', order.userId)
-console.log('[webhook] order.orderId:', order.orderId)
-console.log('[webhook] postShipment payload:', JSON.stringify({
-  orderId:       order.orderId,  // ← era id
-  userId:        order.userId,
-  total:         order.total,
-  discount:      order.discount,
-  shipping:      order.shipping,
-  status:        order.status ?? 'PENDING',
-  address:       order.address,
-  originAddress,
-  carrier:       order.carrier,
-  items:         order.items,
-}))
-        const shipment = await postShipment({
-          orderId:       order.orderId,
-          userId:        order.userId,
-          total:         order.total,
-          discount:      order.discount,
-          shipping:      order.shipping,
-          status:        order.status ?? 'PENDING',
-          address:       order.address,
-          originAddress,
-          carrier:       order.carrier,
-          items:         order.items,
-        })
+
+        const dirs          = splitDirecciones(order.originAddress)
+        const originAddress = dirs[dirs.length - 1]
+
+        console.log('[webhook] enviando shipment:', { orderId: order.orderId, buyerId: order.userId, originAddress })
+
+        const shipment = await enviarShipment(order, originAddress)
 
         await patchOrderStatus(ordenId, 'PAID')
 
