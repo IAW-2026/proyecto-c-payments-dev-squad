@@ -226,8 +226,8 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
                 </div>
                 <div className="flex justify-between">
                   <span style={{ color: 'var(--color-muted)' }}>Envío</span>
-                  {order.shipping === 0 ? (
-                    <span style={{ color: 'var(--color-muted)', fontStyle: 'italic' }}>A calcular</span>
+                  {order.carrier === 'PICKUP' || order.shipping === 0 ? (
+                    <span style={{ color: 'var(--color-success)', fontWeight: 600 }}>Gratis</span>
                   ) : (
                     <span style={{ color: 'var(--color-foreground)' }}>$ {order.shipping.toLocaleString('es-AR')}</span>
                   )}

@@ -36,37 +36,20 @@ export async function calcularCostoEnvio(
   originAddress: string,
   destAddress:   string
 ): Promise<number> {
-  console.log('[shippingCost] ORS_API_KEY existe:', !!ORS_API_KEY)
-  console.log('[shippingCost] originAddress:', JSON.stringify(originAddress), '| destAddress:', JSON.stringify(destAddress))
-  if (!ORS_API_KEY) { console.log('[shippingCost] early return: no key'); return 0 }
-  if (!originAddress || !destAddress) { console.log('[shippingCost] early return: address vacía'); return 0 }
-  if (originAddress.trim() === destAddress.trim()) { console.log('[shippingCost] early return: misma direccion'); return 0 }
-  if (originAddress === 'No address') { console.log('[shippingCost] early return: No address'); return 0 }
+  if (!ORS_API_KEY) return 0
+  if (!originAddress || !destAddress) return 0
+  if (originAddress === 'No address') return 0
   try {
     const dirs = splitDirecciones(originAddress)
-    console.log('[shippingCost] dirs split:', JSON.stringify(dirs))
-    console.log('[shippingCost] geocoding destino...')
     const dest = await geocode(destAddress)
-    console.log('[shippingCost] destino geocoded:', dest)
-
-    // Geocodificar todas las origins en paralelo
-    console.log('[shippingCost] geocoding origenes...')
     const origenCoords = await Promise.all(dirs.map(d => geocode(d)))
-    console.log('[shippingCost] origenes geocoded:', JSON.stringify(origenCoords))
-
-    // Calcular distancia de cada origen al destino
-    console.log('[shippingCost] calculando distancias...')
     const distancias = await Promise.all(
       origenCoords.map(from => getDistanceKm(from, dest))
     )
-    console.log('[shippingCost] distancias:', JSON.stringify(distancias))
-
     const maxKm = Math.max(...distancias)
-    const costo = Math.round(maxKm * PRICE_PER_KM)
-    console.log('[shippingCost] costo final:', costo)
-    return costo
+    return Math.round(maxKm * PRICE_PER_KM)
   } catch (error) {
-    console.error('[shippingCost] Error calculando costo de envío:', error)
+    console.error('Error calculando costo de envío:', error)
     return 0
   }
 }
