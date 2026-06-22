@@ -29,7 +29,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
   // Calcular costo de envío solo si es MAIL y shipping es 0,
   // luego recalcular el total desde los items, el envío y el descuento.
-  if (order.carrier === 'MAIL' && order.shipping === 0) {
+  if (order.shipping === 0) {
     order.shipping = await calcularCostoEnvio(order.originAddress, order.address)
   }
   order.total = calcularTotalOrden(order)
