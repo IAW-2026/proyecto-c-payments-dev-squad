@@ -167,7 +167,8 @@ export async function POST(req: NextRequest) {
           : // si hay varias, ya tenés la lógica de distancia... pero acá no podés awaitar geocode fácil
             // por simplicidad mandá la última (que según el log de Sofi es la misma repetida)
             dirs[dirs.length - 1]
-
+console.log('[webhook] order.userId:', order.userId)
+console.log('[webhook] order.orderId:', order.orderId)
 console.log('[webhook] postShipment payload:', JSON.stringify({
   orderId:       order.orderId,  // ← era id
   userId:        order.userId,
