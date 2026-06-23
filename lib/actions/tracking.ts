@@ -1,27 +1,19 @@
 'use server'
 import { auth } from '@clerk/nextjs/server'
 import { generateShipmentToken } from '@/lib/shipmentToken'
-import { verifyPaymentToken } from '@/lib/paymentToken'
 
-export async function getTrackingUrl(orderId: string, paymentToken?: string): Promise<string> {
-  let userId: string | null = null
-
-  // Intentar con sesión de Clerk primero
-  try {
-    const { userId: clerkUserId } = await auth()
-    userId = clerkUserId
-  } catch {}
-
-  // Fallback a token si no hay sesión de Clerk
-  if (!userId && paymentToken) {
-    const verified = await verifyPaymentToken(paymentToken, orderId)
-    if (verified) {
-      userId = verified.userId
-    }
+export async function getTrackingUrl(orderId: string, userId?: string): Promise<string> {
+  // Si nos pasaron userId desde sessionStorage, confiamos en él
+  // (fue seteado por page.tsx tras verificar el token original)
+  if (userId) {
+    const token = await generateShipmentToken({ userId, orderId })
+    return `${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}?token=${token}`
   }
 
-  if (!userId) throw new Error('No autenticado')
+  // Fallback a Clerk si no hay userId
+  const { userId: clerkUserId } = await auth()
+  if (!clerkUserId) throw new Error('No autenticado')
 
-  const token = await generateShipmentToken({ userId, orderId })
+  const token = await generateShipmentToken({ userId: clerkUserId, orderId })
   return `${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}?token=${token}`
 }
