@@ -13,10 +13,9 @@ export default async function OrderRedirect({ params, searchParams }: Props) {
   if (token) {
     const verified = await verifyShipmentToken(token, orderId)
     if (verified) {
-      redirect(`/?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`)
+      redirect(`/api/auth/signout?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`)
     }
   }
 
-  // Sin token válido → pedir login normal
   redirect(`/sign-in?redirect_url=/${encodeURIComponent(orderId)}`)
 }
