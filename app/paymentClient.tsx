@@ -134,6 +134,13 @@ useEffect(() => {
             <ThemeToggle />
             {isSignedIn ? (
               <UserButton />
+            ) : userId ? (
+              <span
+                className="flex items-center gap-1 sm:gap-2 rounded-full px-3 sm:px-5 py-2 text-xs sm:text-sm font-semibold border"
+                style={{ borderColor: 'var(--color-border)', color: 'var(--color-muted)' }}
+              >
+                <span>👤</span> <span className="hidden sm:inline">Sesión activa</span>
+              </span>
             ) : (
               <SignInButton>
                 <button
