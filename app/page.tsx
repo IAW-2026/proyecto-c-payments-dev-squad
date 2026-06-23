@@ -3,7 +3,7 @@ import { auth } from '@clerk/nextjs/server'
 import { getRole } from '@/lib/auth'
 import { Order, MOCK_ORDER, getOrder, calcularTotalOrden } from '@/lib/services/buyerApp'
 import { calcularCostoEnvio } from '@/lib/services/shippingCost'
-import { verifyShipmentToken } from '@/lib/shipmentToken'
+import { verifyPaymentToken } from '@/lib/paymentToken'
 import PaymentClient from './paymentClient'
 
 interface Props {
@@ -25,7 +25,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
   // Token tiene prioridad sobre sesión de Clerk
   if (token && orderId) {
-    const verified = await verifyShipmentToken(token, orderId)
+    const verified = await verifyPaymentToken(token, orderId)
     if (verified) {
       userId = verified.userId
     }
