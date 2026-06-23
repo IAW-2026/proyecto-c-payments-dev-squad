@@ -1,10 +1,22 @@
 import { redirect } from 'next/navigation'
+import { verifyShipmentToken } from '@/lib/shipmentToken'
 
 interface Props {
-  params: Promise<{ orderId: string }>
+  params:       Promise<{ orderId: string }>
+  searchParams: Promise<{ token?: string }>
 }
 
-export default async function OrderRedirect({ params }: Props) {
+export default async function OrderRedirect({ params, searchParams }: Props) {
   const { orderId } = await params
-  redirect(`/?orderId=${encodeURIComponent(orderId)}`)
+  const { token }   = await searchParams
+
+  if (token) {
+    const verified = await verifyShipmentToken(token, orderId)
+    if (verified) {
+      redirect(`/?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`)
+    }
+  }
+
+  // Sin token válido → pedir login normal
+  redirect(`/sign-in?redirect_url=/${encodeURIComponent(orderId)}`)
 }

@@ -11,12 +11,16 @@ const isPublicRoute = createRouteMatcher([
   '/pago/pendiente',
 ])
 
+const isOrderRoute = createRouteMatcher([
+  '/:orderId([0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12})',
+])
+
 export default clerkMiddleware(async (auth, req) => {
-  if (req.nextUrl.pathname === '/api/payments/webhook') {
+  if (isOrderRoute(req) && req.nextUrl.searchParams.get('token')) {
     return NextResponse.next()
   }
-  // Cualquier ruta bajo /api/admin/* pasa directo — se protege con x-api-key propia
-  if (req.nextUrl.pathname.startsWith('/api/admin/')) {
+
+  if (req.nextUrl.pathname === '/api/payments/webhook') {
     return NextResponse.next()
   }
 
