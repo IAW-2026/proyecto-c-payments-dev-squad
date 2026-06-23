@@ -1,5 +1,6 @@
 const ORS_API_KEY = process.env.ORS_API_KEY || ''
 const PRICE_PER_KM = 50 // $ ARS por km
+const MIN_SHIPPING_COST = 100
 
 async function geocode(address: string): Promise<[number, number]> {
   const url = `https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(address)}&boundary.country=AR&size=1`
@@ -17,8 +18,7 @@ async function getDistanceKm(from: [number, number], to: [number, number]): Prom
   if (!res.ok) throw new Error(`Directions falló: ${res.status}`)
   const data = await res.json()
   const meters = data.features?.[0]?.properties?.segments?.[0]?.distance
-  if (!meters) throw new Error('No se pudo calcular la ruta')
-  return meters / 1000
+  return meters ? meters / 1000 : 0
 }
 
 export function splitDirecciones(raw: string): string[] {
@@ -47,9 +47,9 @@ export async function calcularCostoEnvio(
       origenCoords.map(from => getDistanceKm(from, dest))
     )
     const maxKm = Math.max(...distancias)
-    return Math.round(maxKm * PRICE_PER_KM)
+    return Math.max(MIN_SHIPPING_COST, Math.round(maxKm * PRICE_PER_KM))
   } catch (error) {
     console.error('Error calculando costo de envío:', error)
-    return 0
+    return MIN_SHIPPING_COST
   }
 }
