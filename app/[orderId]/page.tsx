@@ -1,5 +1,5 @@
 import { redirect } from 'next/navigation'
-import { verifyShipmentToken } from '@/lib/shipmentToken'
+import { verifyPaymentToken } from '@/lib/paymentToken'
 
 interface Props {
   params:       Promise<{ orderId: string }>
@@ -11,7 +11,7 @@ export default async function OrderRedirect({ params, searchParams }: Props) {
   const { token }   = await searchParams
 
   if (token) {
-    const verified = await verifyShipmentToken(token, orderId)
+    const verified = await verifyPaymentToken(token, orderId)
     if (verified) {
       redirect(`/?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`)
     }
