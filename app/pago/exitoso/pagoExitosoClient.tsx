@@ -115,8 +115,9 @@ export default function PagoExitosoClient() {
           onClick={async () => {
             if (!orderId) return
             try {
+              const token = sessionStorage.getItem('payment-token') ?? undefined
               const { getTrackingUrl } = await import('@/lib/actions/tracking')
-              const url = await getTrackingUrl(orderId)
+              const url = await getTrackingUrl(orderId, token)
               window.location.href = url
             } catch {
               window.location.href = `${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}`
