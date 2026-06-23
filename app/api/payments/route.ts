@@ -3,6 +3,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
 import { calcularTotalOrden } from '@/lib/services/buyerApp'
 import { calcularCostoEnvio } from '@/lib/services/shippingCost'
+import { verifyPaymentToken } from '@/lib/paymentToken'
 
 export type OrderItem = {
   name: string
@@ -26,6 +27,7 @@ export type OrderPayload = {
   originAddress: string
   carrier: 'MAIL' | 'PICKUP'
   items: OrderItem[]
+  token?: string
 }
 
 export async function POST(req: NextRequest) {
@@ -51,6 +53,18 @@ export async function POST(req: NextRequest) {
         { error: 'La orden debe contener items' },
         { status: 400 }
       )
+    }
+
+    // Si viene con token, verificarlo y usar el userId del token
+    if (order.token) {
+      const verified = await verifyPaymentToken(order.token, order.orderId)
+      if (!verified) {
+        return NextResponse.json(
+          { error: 'Token inválido o expirado' },
+          { status: 401 }
+        )
+      }
+      order.userId = verified.userId
     }
 
     let shipping = order.shipping

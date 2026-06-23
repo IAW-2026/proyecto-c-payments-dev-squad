@@ -70,6 +70,7 @@ useEffect(() => {
     setLoading(true)
     setError(null)
     try {
+      const token = new URLSearchParams(window.location.search).get('token')
       const payload = {
         orderId,
         userId,
@@ -81,6 +82,7 @@ useEffect(() => {
         originAddress: order.originAddress,
         carrier:       order.carrier,
         items:         order.items,
+        token:         token ?? undefined,
       }
 
       const res = await fetch('/api/payments', {
