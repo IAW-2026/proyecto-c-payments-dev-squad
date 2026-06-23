@@ -108,9 +108,9 @@ export default function PagoExitosoClient() {
         )}
 
         <div className="flex flex-col gap-2 sm:gap-3">
-        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
-          Volver al inicio
-        </Link>
+        <a href={`https://zapasya.vercel.app/order-confirmation/${orderId ?? ''}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+          Ver orden de compra confirmada
+        </a>
         <button
           onClick={async () => {
             if (!orderId) return
