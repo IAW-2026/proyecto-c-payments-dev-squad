@@ -20,11 +20,11 @@ export default async function PaymentsPage({ searchParams }: Props) {
     redirect('/')
   }
 
-  // Intentar obtener userId de Clerk o del token
   const { userId: clerkUserId } = await auth()
   let userId = clerkUserId
 
-  if (!userId && token && orderId) {
+  // Token tiene prioridad sobre sesión de Clerk
+  if (token && orderId) {
     const verified = await verifyShipmentToken(token, orderId)
     if (verified) {
       userId = verified.userId
@@ -33,7 +33,6 @@ export default async function PaymentsPage({ searchParams }: Props) {
 
   if (!userId) redirect('/sign-in')
 
-  // Intentar obtener la orden desde Buyer App
   let order = orderId ? await getOrder(orderId) : null
   if (!order) {
     order = { ...MOCK_ORDER, id: orderId, userId }
