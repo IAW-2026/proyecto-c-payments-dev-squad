@@ -48,12 +48,20 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
   useEffect(() => setMounted(true), [])
 
   // Si viene con token, cerrar sesión de Clerk para evitar conflictos
-  useEffect(() => {
-    const token = new URLSearchParams(window.location.search).get('token')
-    if (token && isSignedIn) {
-      signOut({ redirectUrl: window.location.href })
-    }
-  }, [isSignedIn, signOut])
+useEffect(() => {
+  const token = new URLSearchParams(window.location.search).get('token')
+  if (!token || !isSignedIn) return
+
+  // Marcar que ya hicimos signOut para no loopearlo
+  const didSignOut = sessionStorage.getItem('did-signout-for-token')
+  if (didSignOut) {
+    sessionStorage.removeItem('did-signout-for-token')
+    return
+  }
+
+  sessionStorage.setItem('did-signout-for-token', '1')
+  signOut({ redirectUrl: window.location.href })
+}, [isSignedIn, signOut])
 
   const subtotal   = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
   const totalFinal = order.total
