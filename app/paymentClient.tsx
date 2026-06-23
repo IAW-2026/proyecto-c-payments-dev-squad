@@ -1,6 +1,6 @@
 'use client'
 // app/paymentClient.tsx
-import { useUser, SignInButton, UserButton } from '@clerk/nextjs'
+import { useUser, useClerk, SignInButton, UserButton } from '@clerk/nextjs'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import ThemeToggle from '@/components/ThemeToggle'
@@ -37,6 +37,7 @@ interface Props {
 
 export default function PaymentClient({ orderId, userId, order }: Props) {
   const { isSignedIn }        = useUser()
+  const { signOut }           = useClerk()
   const router                = useRouter()
   const { resolved }          = useTheme()
   const [mounted, setMounted] = useState(false)
@@ -45,6 +46,14 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
   const [selectedPayment, setSelectedPayment] = useState('mercadopago')
 
   useEffect(() => setMounted(true), [])
+
+  // Si viene con token, cerrar sesión de Clerk para evitar conflictos
+  useEffect(() => {
+    const token = new URLSearchParams(window.location.search).get('token')
+    if (token && isSignedIn) {
+      signOut({ redirectUrl: window.location.href })
+    }
+  }, [isSignedIn, signOut])
 
   const subtotal   = order.items.reduce((acc, i) => acc + i.price * i.quantity, 0)
   const totalFinal = order.total
@@ -56,14 +65,14 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
       const payload = {
         orderId,
         userId,
-        total: totalFinal,
-        discount: order.discount,
-        shipping: order.shipping,
-        status: order.status,
-        address: order.address,
+        total:         totalFinal,
+        discount:      order.discount,
+        shipping:      order.shipping,
+        status:        order.status,
+        address:       order.address,
         originAddress: order.originAddress,
-        carrier: order.carrier,
-        items: order.items,
+        carrier:       order.carrier,
+        items:         order.items,
       }
 
       const res = await fetch('/api/payments', {
@@ -270,7 +279,7 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
               </div>
             </div>
 
-          </div>{/* cierra LEFT */}
+          </div>
 
           {/* RIGHT — Método de pago */}
           <aside
@@ -342,7 +351,7 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
             </div>
           </aside>
 
-        </div>{/* cierra grid */}
+        </div>
       </div>
     </main>
   )

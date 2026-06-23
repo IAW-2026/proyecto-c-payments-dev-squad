@@ -13,7 +13,7 @@ export default async function OrderRedirect({ params, searchParams }: Props) {
   if (token) {
     const verified = await verifyShipmentToken(token, orderId)
     if (verified) {
-      redirect(`/api/auth/signout?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`)
+      redirect(`/?orderId=${encodeURIComponent(orderId)}&token=${encodeURIComponent(token)}`)
     }
   }
 
