@@ -22,7 +22,7 @@ export default async function RootLayout({
         <body>
           <ThemeProvider>
             <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
-              <Sidebar role={role} />
+              <Sidebar role={role} buyerAppUrl={process.env.NEXT_PUBLIC_BUYER_APP_URL ?? '/'} />
               {/* paddingLeft responsive: 0 en mobile, 64px en desktop */}
               <main style={{ minHeight: '100vh' }} className="md:pl-16">
                 {children}
