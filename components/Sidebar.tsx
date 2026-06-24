@@ -152,7 +152,12 @@ export default function Sidebar({ role, buyerAppUrl = '/' }: SidebarProps) {
                 ? '/logos/zapasya-light.webp'
                 : '/logos/zapasya-dark.webp'}
               alt="ZapasYa"
-              style={{ height: '32px', width: 'auto' }}
+              style={{ height: '32px', width: 'auto', cursor: 'pointer' }}
+              onClick={() => {
+                const audio = new Audio('/easter-egg.mp3')
+                audio.volume = 0.5
+                audio.play().catch(() => {})
+              }}
             />
           </div>
         </div>
