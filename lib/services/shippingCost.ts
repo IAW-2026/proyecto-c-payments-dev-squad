@@ -55,7 +55,12 @@ export async function calcularCostoEnvio(
   try {
     const dirs = splitDirecciones(originAddress)
     const dest = await geocode(destAddress)
-    const origenCoords = await Promise.all(dirs.map(d => geocode(d)))
+    const origenCoords: [number, number][] = []
+    for (const d of dirs) {
+      const coords = await geocode(d)
+      origenCoords.push(coords)
+      await new Promise(r => setTimeout(r, 300))
+    }
     const distancias = await Promise.all(
       origenCoords.map(from => getDistanceKm(from, dest))
     )
