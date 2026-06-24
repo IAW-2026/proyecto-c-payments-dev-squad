@@ -35,14 +35,18 @@ async function getDistanceKm(from: [number, number], to: [number, number]): Prom
 }
 
 export function splitDirecciones(raw: string): string[] {
-  // Separa en cada punto donde aparece una calle con número (ej: "Av. Colón 1234")
-  // que NO esté al inicio del string
-  const dirs = raw
-    .split(/,\s*(?=[A-ZÁÉÍÓÚÑ][a-záéíóúñA-ZÁÉÍÓÚÑ.]+\s+\d)/)
-    .map(d => d.trim())
-    .filter(Boolean)
-
-  return dirs.length > 0 ? dirs : [raw.trim()]
+  const parts = raw.split(',').map(p => p.trim()).filter(Boolean)
+  const result: string[] = []
+  for (const part of parts) {
+    if (/\d/.test(part)) {
+      result.push(part)
+    } else if (result.length > 0) {
+      result[result.length - 1] += ', ' + part
+    } else {
+      result.push(part)
+    }
+  }
+  return result.length > 0 ? result : [raw.trim()]
 }
 
 export async function calcularCostoEnvio(
