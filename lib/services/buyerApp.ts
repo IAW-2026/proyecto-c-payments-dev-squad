@@ -86,7 +86,18 @@ export async function getOrder(orderId: string): Promise<Order | null> {
     }
     const data = await res.json()
     console.log('[getOrder] data recibida:', JSON.stringify(data).slice(0, 200))
-    return data
+    return {
+      id:            data.id,
+      userId:        data.userId,
+      total:         data.total ?? 0,
+      discount:      data.discount ?? 0,
+      shipping:      data.shipping ?? 0,
+      status:        data.status ?? 'PENDING',
+      address:       data.address ?? '',
+      originAddress: data.originAddress ?? '',
+      carrier:       data.carrier ?? 'MAIL',
+      items:         data.items ?? [],
+    }
   } catch (e) {
     console.error('[getOrder] error:', e)
     return null
