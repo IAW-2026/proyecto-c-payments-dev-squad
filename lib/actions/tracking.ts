@@ -6,7 +6,7 @@ export async function getTrackingUrl(orderId: string, userId?: string): Promise<
   // Si nos pasaron userId desde sessionStorage, confiamos en él
   // (fue seteado por page.tsx tras verificar el token original)
   if (userId) {
-    const token = await generateShipmentToken({ userId, orderId })
+    const token = await generateShipmentToken({ clerkId: userId, orderId })
     return `${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}?token=${token}`
   }
 
@@ -14,6 +14,6 @@ export async function getTrackingUrl(orderId: string, userId?: string): Promise<
   const { userId: clerkUserId } = await auth()
   if (!clerkUserId) throw new Error('No autenticado')
 
-  const token = await generateShipmentToken({ userId: clerkUserId, orderId })
+  const token = await generateShipmentToken({ clerkId: clerkUserId, orderId })
   return `${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}?token=${token}`
 }
