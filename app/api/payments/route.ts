@@ -64,7 +64,7 @@ export async function POST(req: NextRequest) {
           { status: 401 }
         )
       }
-      order.userId = verified.userId
+      order.userId = verified.clerkId
     }
 
     let shipping = order.shipping

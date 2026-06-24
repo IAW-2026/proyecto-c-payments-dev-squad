@@ -28,13 +28,13 @@ function base64urlDecode(str: string): ArrayBuffer {
 }
 
 type PaymentTokenPayload = {
-  userId: string;
+  clerkId: string;
   orderId: string;
   exp: number;
 };
 
 export async function generatePaymentToken(
-  data: { userId: string; orderId: string },
+  data: { clerkId: string; orderId: string },
   ttlSeconds = 600
 ): Promise<string> {
   const payload: PaymentTokenPayload = {
@@ -55,7 +55,7 @@ export async function generatePaymentToken(
 export async function verifyPaymentToken(
   token: string,
   expectedOrderId: string
-): Promise<{ userId: string } | null> {
+): Promise<{ clerkId: string } | null> {
   const [payloadB64, sigB64] = token.split(".");
   if (!payloadB64 || !sigB64) return null;
 
@@ -76,7 +76,7 @@ export async function verifyPaymentToken(
     if (payload.exp < Math.floor(Date.now() / 1000)) return null;
     if (payload.orderId !== expectedOrderId) return null;
 
-    return { userId: payload.userId };
+    return { clerkId: payload.clerkId };
   } catch {
     return null;
   }

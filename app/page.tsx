@@ -27,7 +27,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
   if (token && orderId) {
     const verified = await verifyPaymentToken(token, orderId)
     if (verified) {
-      userId = verified.userId
+      userId = verified.clerkId
     }
   }
 
