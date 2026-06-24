@@ -5,6 +5,7 @@ const isPublicRoute = createRouteMatcher([
   '/sign-in(.*)',
   '/sign-up(.*)',
   '/api/payments(.*)',
+  '/api/admin(.*)',
   '/api/disputes',
   '/pago/exitoso',
   '/pago/error',
