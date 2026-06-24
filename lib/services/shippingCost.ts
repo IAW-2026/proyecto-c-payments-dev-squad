@@ -3,19 +3,20 @@ const PRICE_PER_KM = 50 // $ ARS por km
 const MIN_SHIPPING_COST = 100
 
 async function geocode(address: string): Promise<[number, number]> {
-  const url = `https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(address)}&boundary.country=AR&size=1`
-  const res  = await fetch(url)
+  const url = `https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(address)}&format=json&limit=1&countrycodes=ar`
+  const res  = await fetch(url, { headers: { 'User-Agent': 'ZapasYa-Payments/1.0' } })
   if (!res.ok) {
     console.error('[geocode] HTTP error:', res.status, address)
     throw new Error(`Geocoding falló: ${res.status}`)
   }
   const data = await res.json()
-  const coords = data.features?.[0]?.geometry?.coordinates
-  if (!coords) {
-    console.error('[geocode] no results for:', address, 'response:', JSON.stringify(data).slice(0, 300))
+  if (!data?.length) {
+    console.error('[geocode] no results for:', address)
     throw new Error(`No se encontró la dirección: ${address}`)
   }
-  return coords // [lng, lat]
+  const lat = parseFloat(data[0].lat)
+  const lon = parseFloat(data[0].lon)
+  return [lon, lat] // [lng, lat] (ORS espera lng,lat)
 }
 
 async function getDistanceKm(from: [number, number], to: [number, number]): Promise<number> {
