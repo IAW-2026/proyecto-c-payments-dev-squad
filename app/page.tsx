@@ -40,7 +40,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
     order.userId = userId
   }
 
-  if (order.carrier === 'MAIL' && order.shipping === 0) {
+  if ((order.carrier ?? 'MAIL') === 'MAIL' && order.shipping === 0) {
     order.shipping = await calcularCostoEnvio(order.originAddress, order.address)
   }
   order.total = calcularTotalOrden(order)

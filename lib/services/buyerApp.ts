@@ -95,7 +95,7 @@ export async function getOrder(orderId: string): Promise<Order | null> {
       status:        data.status ?? 'PENDING',
       address:       data.address ?? '',
       originAddress: data.originAddress ?? '',
-      carrier:       data.carrier ?? 'MAIL',
+      carrier:       data.carrier,
       items:         data.items ?? [],
     }
   } catch (e) {

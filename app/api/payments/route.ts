@@ -69,7 +69,7 @@ export async function POST(req: NextRequest) {
 
     let shipping = order.shipping
 
-    if (order.carrier === 'MAIL' && shipping === 0) {
+    if ((order.carrier ?? 'MAIL') === 'MAIL' && shipping === 0) {
       shipping = await calcularCostoEnvio(
         order.originAddress,
         order.address
