@@ -5,19 +5,31 @@ const MIN_SHIPPING_COST = 100
 async function geocode(address: string): Promise<[number, number]> {
   const url = `https://api.openrouteservice.org/geocode/search?api_key=${ORS_API_KEY}&text=${encodeURIComponent(address)}&boundary.country=AR&size=1`
   const res  = await fetch(url)
-  if (!res.ok) throw new Error(`Geocoding falló: ${res.status}`)
+  if (!res.ok) {
+    console.error('[geocode] HTTP error:', res.status, address)
+    throw new Error(`Geocoding falló: ${res.status}`)
+  }
   const data = await res.json()
   const coords = data.features?.[0]?.geometry?.coordinates
-  if (!coords) throw new Error(`No se encontró la dirección: ${address}`)
+  if (!coords) {
+    console.error('[geocode] no results for:', address, 'response:', JSON.stringify(data).slice(0, 300))
+    throw new Error(`No se encontró la dirección: ${address}`)
+  }
   return coords // [lng, lat]
 }
 
 async function getDistanceKm(from: [number, number], to: [number, number]): Promise<number> {
   const url = `https://api.openrouteservice.org/v2/directions/driving-car?api_key=${ORS_API_KEY}&start=${from[0]},${from[1]}&end=${to[0]},${to[1]}`
   const res  = await fetch(url)
-  if (!res.ok) throw new Error(`Directions falló: ${res.status}`)
+  if (!res.ok) {
+    console.error('[getDistanceKm] HTTP error:', res.status)
+    throw new Error(`Directions falló: ${res.status}`)
+  }
   const data = await res.json()
   const meters = data.features?.[0]?.properties?.segments?.[0]?.distance
+  if (!meters) {
+    console.log('[getDistanceKm] no route data:', JSON.stringify(data).slice(0, 300))
+  }
   return meters ? meters / 1000 : 0
 }
 
@@ -49,7 +61,7 @@ export async function calcularCostoEnvio(
     const maxKm = Math.max(...distancias)
     return Math.max(MIN_SHIPPING_COST, Math.round(maxKm * PRICE_PER_KM))
   } catch (error) {
-    console.error('Error calculando costo de envío:', error)
+    console.error('[calcularCostoEnvio] error:', error, { originAddress, destAddress })
     return MIN_SHIPPING_COST
   }
 }
