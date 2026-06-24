@@ -85,7 +85,7 @@ export async function getOrder(orderId: string): Promise<Order | null> {
       return null
     }
     const data = await res.json()
-    console.log('[getOrder] data recibida:', JSON.stringify(data).slice(0, 200))
+    console.log('[getOrder] data keys:', Object.keys(data), 'carrier:', data.carrier, 'shipping:', data.shipping)
     return {
       id:            data.id,
       userId:        data.userId,
