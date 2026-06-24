@@ -3,7 +3,6 @@ import { prisma } from '@/lib/db'
 import { postSale } from '@/lib/services/sellerApp'
 import { patchOrderStatus } from '@/lib/services/buyerApp'
 import type { OrderPayload } from '@/app/api/payments/route'
-import { splitDirecciones } from '@/lib/services/shippingCost'
 
 const estadoMap: Record<string, 'APROBADO' | 'RECHAZADO' | 'PENDIENTE'> = {
   approved:     'APROBADO',
@@ -194,12 +193,9 @@ export async function POST(req: NextRequest) {
           })),
         })
 
-        const dirs          = splitDirecciones(order.originAddress)
-        const originAddress = dirs[dirs.length - 1]
+        console.log('[webhook] enviando shipment:', { orderId: order.orderId, buyerId: order.userId, originAddress: order.originAddress })
 
-        console.log('[webhook] enviando shipment:', { orderId: order.orderId, buyerId: order.userId, originAddress })
-
-        const shipment = await enviarShipment(order, originAddress)
+        const shipment = await enviarShipment(order, order.originAddress)
 
         await patchOrderStatus(ordenId, 'PAID')
 
