@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect } from 'react'
+import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/theme'
@@ -8,9 +8,12 @@ import { useTheme } from '@/lib/theme'
 export default function PagoErrorClient() {
   const searchParams = useSearchParams()
   const { resolved } = useTheme()
-  const orderId = searchParams.get('order_id')
+  const [orderId, setOrderId] = useState<string | null>(null)
 
   useEffect(() => {
+    const id = searchParams.get('order_id') || sessionStorage.getItem('payment-orderid')
+    if (id) setOrderId(id)
+
     const mpPaymentId  = searchParams.get('payment_id')
     const preferenceId = searchParams.get('preference_id')
     if (!mpPaymentId || !preferenceId) return

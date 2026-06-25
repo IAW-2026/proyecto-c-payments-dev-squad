@@ -92,10 +92,11 @@ useEffect(() => {
       })
       const data = await res.json()
       if (!res.ok) throw new Error(data.error ?? 'Error al iniciar el pago')
-      // Guardar token/userId para usarlos después del redirect
+      // Guardar token/userId/orderId para usarlos después del redirect
       const t = new URLSearchParams(window.location.search).get('token')
       if (t) sessionStorage.setItem('payment-token', t)
       sessionStorage.setItem('payment-userid', userId)
+      sessionStorage.setItem('payment-orderid', orderId)
 
       if (data.init_point) {
         window.location.href = data.init_point
