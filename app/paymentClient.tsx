@@ -139,13 +139,15 @@ useEffect(() => {
               <span style={{ fontSize: '16px', lineHeight: 1 }}>←</span>
               <span className="hidden sm:inline">Volver hacia atrás</span>
             </button>
-            <img
-              src={!mounted || resolved === 'light'
-                ? '/logos/zapasya-light.webp'
-                : '/logos/zapasya-dark.webp'}
-              alt="ZapasYa"
-              className="h-8 sm:h-10 w-auto"
-            />
+            <a href="https://zapasya.vercel.app" style={{ cursor: 'pointer', lineHeight: 0 }}>
+              <img
+                src={!mounted || resolved === 'light'
+                  ? '/logos/zapasya-light.webp'
+                  : '/logos/zapasya-dark.webp'}
+                alt="ZapasYa"
+                className="h-8 sm:h-10 w-auto"
+              />
+            </a>
             <span className="text-xs sm:text-sm font-normal hidden sm:inline" style={{ color: 'var(--color-muted)' }}>
               · Payments
             </span>
