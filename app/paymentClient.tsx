@@ -126,6 +126,19 @@ useEffect(() => {
           style={{ backgroundColor: 'var(--color-surface)', borderColor: 'var(--color-border)' }}
         >
           <div className="flex items-center gap-2 sm:gap-3 min-w-0">
+            <button
+              onClick={() => router.back()}
+              className="flex items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all btn-secondary shrink-0"
+              style={{
+                padding: '8px 14px',
+                border: '1px solid var(--color-border)',
+                cursor: 'pointer',
+              }}
+              aria-label="Volver"
+            >
+              <span style={{ fontSize: '16px', lineHeight: 1 }}>←</span>
+              <span className="hidden sm:inline">Volver hacia atrás</span>
+            </button>
             <img
               src={!mounted || resolved === 'light'
                 ? '/logos/zapasya-light.webp'

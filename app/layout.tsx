@@ -1,18 +1,13 @@
 // app/layout.tsx
 import { ClerkProvider } from '@clerk/nextjs'
 import { ThemeProvider } from '@/lib/theme'
-import { getRole } from '@/lib/auth'
-import Sidebar from '@/components/Sidebar'
 import './globals.css'
 
-export default async function RootLayout({
+export default function RootLayout({
   children,
 }: {
   children: React.ReactNode
 }) {
-  // Lee el rol server-side — si no hay sesión activa devuelve 'user'
-  const role = await getRole()
-
   return (
     <ClerkProvider>
       <html lang="es" suppressHydrationWarning>
@@ -22,9 +17,7 @@ export default async function RootLayout({
         <body>
           <ThemeProvider>
             <div style={{ backgroundColor: 'var(--color-background)', minHeight: '100vh' }}>
-              <Sidebar role={role} buyerAppUrl={process.env.NEXT_PUBLIC_BUYER_APP_URL ?? '/'} />
-              {/* paddingLeft responsive: 0 en mobile, 64px en desktop */}
-              <main style={{ minHeight: '100vh' }} className="md:pl-16">
+              <main style={{ minHeight: '100vh' }}>
                 {children}
               </main>
             </div>
