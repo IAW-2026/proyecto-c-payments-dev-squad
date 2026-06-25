@@ -43,7 +43,19 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
   })
 
   // Carga la preferencia guardada al montar (solo cliente)
+  // Prioriza ?theme=light|dark si viene desde otra app
   useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const themeParam = params.get('theme')
+
+    if (themeParam === 'light' || themeParam === 'dark') {
+      setThemeState(themeParam)
+      setResolved(themeParam)
+      document.documentElement.setAttribute('data-theme', themeParam)
+      try { localStorage.setItem('theme', themeParam) } catch {}
+      return
+    }
+
     const initial = getInitialTheme()
     setThemeState(initial)
     const r = resolveTheme(initial)

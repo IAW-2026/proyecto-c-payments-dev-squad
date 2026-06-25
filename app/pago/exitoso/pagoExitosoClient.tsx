@@ -3,11 +3,13 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTheme } from '@/lib/theme'
 
 type Estado = 'cargando' | 'aprobado' | 'pendiente' | 'error'
 
 export default function PagoExitosoClient() {
   const searchParams             = useSearchParams()
+  const { resolved }             = useTheme()
   const [estado, setEstado]      = useState<Estado>('cargando')
   const [intentos, setIntentos]  = useState(0)
   const [pagoId, setPagoId]      = useState<string | null>(null)
@@ -108,7 +110,7 @@ export default function PagoExitosoClient() {
         )}
 
         <div className="flex flex-col gap-2 sm:gap-3">
-        <a href={`https://zapasya.vercel.app/order-confirmation/${orderId ?? ''}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+        <a href={`https://zapasya.vercel.app/order-confirmation/${orderId ?? ''}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
           Ver orden de compra confirmada
         </a>
         <button
@@ -199,7 +201,7 @@ export default function PagoExitosoClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Recibimos tu pago pero aún está siendo procesado. Te notificaremos cuando se confirme.
         </p>
-        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+        <Link href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL!}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
           Volver al inicio  
         </Link>
       </div>
@@ -214,7 +216,7 @@ export default function PagoExitosoClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Si realizaste el pago, no te preocupes — lo procesaremos igual. Revisá tu email.
         </p>
-        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+        <Link href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL!}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
           Volver al inicio  
         </Link>
       </div>

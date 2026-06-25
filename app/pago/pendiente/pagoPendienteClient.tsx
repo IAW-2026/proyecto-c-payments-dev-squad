@@ -3,9 +3,11 @@
 import { useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
+import { useTheme } from '@/lib/theme'
 
 export default function PagoPendienteClient() {
   const searchParams = useSearchParams()
+  const { resolved } = useTheme()
 
   useEffect(() => {
     const mpPaymentId  = searchParams.get('payment_id')
@@ -23,7 +25,7 @@ export default function PagoPendienteClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Tu pago está siendo procesado. Te notificaremos cuando se confirme.
         </p>
-        <Link href={process.env.NEXT_PUBLIC_BUYER_APP_URL!} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+        <Link href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL!}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
           Volver al inicio  
         </Link>
       </div>
