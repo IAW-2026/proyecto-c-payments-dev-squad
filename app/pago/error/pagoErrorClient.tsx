@@ -8,6 +8,7 @@ import { useTheme } from '@/lib/theme'
 export default function PagoErrorClient() {
   const searchParams = useSearchParams()
   const { resolved } = useTheme()
+  const orderId = searchParams.get('order_id')
 
   useEffect(() => {
     const mpPaymentId  = searchParams.get('payment_id')
@@ -25,9 +26,16 @@ export default function PagoErrorClient() {
         <p className="text-xs sm:text-sm mb-4 sm:mb-6" style={{ color: 'var(--color-foreground)' }}>
           Hubo un problema al procesar tu pago. Podés intentarlo nuevamente.
         </p>
-        <Link href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL!}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
-          Volver al inicio  
-        </Link>
+        <div className="flex flex-col gap-2 sm:gap-3">
+          {orderId && (
+            <Link href={`/?orderId=${orderId}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-info)', color: 'white' }}>
+              Reintentar el pago
+            </Link>
+          )}
+          <Link href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL!}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
+            Volver al inicio  
+          </Link>
+        </div>
       </div>
     </main>
   )

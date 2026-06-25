@@ -46,7 +46,7 @@ export default function PagoExitosoClient() {
       }
 
       if (res.status === 400) {
-        window.location.href = '/pago/error'
+        window.location.href = `/pago/error?order_id=${orderId ?? ''}`
         return
       }
 
