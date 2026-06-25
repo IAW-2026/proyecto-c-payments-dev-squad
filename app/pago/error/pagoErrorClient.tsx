@@ -31,9 +31,18 @@ export default function PagoErrorClient() {
         </p>
         <div className="flex flex-col gap-2 sm:gap-3">
           {orderId && (
-            <Link href={`/?orderId=${orderId}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-info)', color: 'white' }}>
+            <button
+              onClick={() => {
+                const token = sessionStorage.getItem('payment-token')
+                const params = new URLSearchParams({ orderId })
+                if (token) params.set('token', token)
+                window.location.href = `/?${params}`
+              }}
+              className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors"
+              style={{ backgroundColor: 'var(--color-info)', color: 'white', border: 'none', cursor: 'pointer' }}
+            >
               Reintentar el pago
-            </Link>
+            </button>
           )}
           <Link href={`${process.env.NEXT_PUBLIC_BUYER_APP_URL!}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
             Volver al inicio  
