@@ -47,6 +47,14 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
 
   useEffect(() => setMounted(true), [])
 
+  // Guardar el referrer al montar por si cambia durante la navegación interna
+  useEffect(() => {
+    const ref = document.referrer
+    if (ref && !ref.startsWith(window.location.origin)) {
+      sessionStorage.setItem('payment-referrer', ref)
+    }
+  }, [])
+
   // Si viene con token, cerrar sesión de Clerk para evitar conflictos
 useEffect(() => {
   const token = new URLSearchParams(window.location.search).get('token')
@@ -168,11 +176,10 @@ useEffect(() => {
         <div className="mb-4 sm:mb-6">
           <button
             onClick={() => {
-              const ref = document.referrer
+              const ref = sessionStorage.getItem('payment-referrer')
               const token = sessionStorage.getItem('payment-token')
-              const dest = ref && !ref.startsWith(window.location.origin)
-                ? new URL(ref)
-                : new URL(process.env.NEXT_PUBLIC_BUYER_APP_URL ?? 'https://zapasya.vercel.app')
+              const base = process.env.NEXT_PUBLIC_BUYER_APP_URL ?? 'https://zapasya.vercel.app'
+              const dest = ref ? new URL(ref) : new URL(`${base}/tienda`)
               if (token) dest.searchParams.set('token', token)
               dest.searchParams.set('theme', resolved)
               window.location.href = dest.toString()
