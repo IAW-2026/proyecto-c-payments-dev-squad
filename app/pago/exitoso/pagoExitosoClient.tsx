@@ -4,12 +4,13 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import Link from 'next/link'
 import { useTheme } from '@/lib/theme'
+import { verifyReturnToken } from '@/lib/shipmentToken'
 
 type Estado = 'cargando' | 'aprobado' | 'pendiente' | 'error'
 
 export default function PagoExitosoClient() {
   const searchParams             = useSearchParams()
-  const { resolved }             = useTheme()
+  const { resolved, setTheme }   = useTheme()
   const [estado, setEstado]      = useState<Estado>('cargando')
   const [intentos, setIntentos]  = useState(0)
   const [pagoId, setPagoId]      = useState<string | null>(null)
@@ -20,6 +21,20 @@ export default function PagoExitosoClient() {
   const [disputaOk, setDisputaOk] = useState(false)
 
   useEffect(() => {
+  // Verificar return token de Shipment
+  const returnToken = searchParams.get('token')
+  const themeParam  = searchParams.get('theme')
+  if (returnToken && (themeParam === 'light' || themeParam === 'dark')) {
+    verifyReturnToken(returnToken).then(valid => {
+      if (!valid) {
+        const saved = localStorage.getItem('theme')
+        if (saved === 'light' || saved === 'dark' || saved === 'system') {
+          setTheme(saved)
+        }
+      }
+    })
+  }
+
   const preferenceId  = searchParams.get('preference_id')
   const orderId       = searchParams.get('external_reference') ?? searchParams.get('order_id')
   const mpPaymentId   = searchParams.get('payment_id')

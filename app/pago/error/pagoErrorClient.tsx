@@ -36,6 +36,7 @@ export default function PagoErrorClient() {
                 const token = sessionStorage.getItem('payment-token')
                 const params = new URLSearchParams({ orderId })
                 if (token) params.set('token', token)
+                params.set('theme', resolved)
                 window.location.href = `/?${params}`
               }}
               className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors"
