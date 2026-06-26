@@ -30,12 +30,13 @@ interface Order {
 }
 
 interface Props {
-  orderId: string
-  userId:  string
-  order:   Order
+  orderId:   string
+  userId:    string
+  order:     Order
+  returnUrl?: string
 }
 
-export default function PaymentClient({ orderId, userId, order }: Props) {
+export default function PaymentClient({ orderId, userId, order, returnUrl }: Props) {
   const { isSignedIn }        = useUser()
   const { signOut }           = useClerk()
   const router                = useRouter()
@@ -49,11 +50,11 @@ export default function PaymentClient({ orderId, userId, order }: Props) {
 
   // Guardar el referrer al montar por si cambia durante la navegación interna
   useEffect(() => {
-    const ref = document.referrer
+    const ref = returnUrl || document.referrer
     if (ref && !ref.startsWith(window.location.origin)) {
       sessionStorage.setItem('payment-referrer', ref)
     }
-  }, [])
+  }, [returnUrl])
 
   // Si viene con token, cerrar sesión de Clerk para evitar conflictos
 useEffect(() => {
@@ -178,7 +179,7 @@ useEffect(() => {
             onClick={() => {
               const ref = sessionStorage.getItem('payment-referrer')
               const base = process.env.NEXT_PUBLIC_BUYER_APP_URL ?? 'https://zapasya.vercel.app'
-              const dest = ref ? new URL(ref) : new URL(`${base}/tienda`)
+              const dest = ref ? new URL(ref) : new URL(`${base}/checkout`)
               dest.searchParams.set('theme', resolved)
               window.location.href = dest.toString()
             }}

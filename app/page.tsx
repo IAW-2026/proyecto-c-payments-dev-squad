@@ -7,14 +7,14 @@ import { verifyPaymentToken } from '@/lib/paymentToken'
 import PaymentClient from './paymentClient'
 
 interface Props {
-  searchParams: Promise<{ orderId?: string; token?: string }>
+  searchParams: Promise<{ orderId?: string; token?: string; returnUrl?: string }>
 }
 
 export default async function PaymentsPage({ searchParams }: Props) {
   const role = await getRole()
   if (role === 'admin') redirect('/admin/dashboard')
 
-  const { orderId = 'order-mock-001', token } = await searchParams
+  const { orderId = 'order-mock-001', token, returnUrl } = await searchParams
 
   if (!orderId || orderId.includes('.')) {
     redirect('/')
@@ -50,6 +50,7 @@ export default async function PaymentsPage({ searchParams }: Props) {
       orderId={orderId}
       userId={userId}
       order={order}
+      returnUrl={returnUrl}
     />
   )
 }
