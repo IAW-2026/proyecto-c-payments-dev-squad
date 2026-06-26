@@ -46,7 +46,7 @@ Otra funcionalidad que no hemos agregado es la de Cancelar Pedido.
 - Cuando el usuario accede a pagar (ya redirigido a MP), y presiona el botón para volver hacia atrás, salta Error de Pago, pero en la DB figura como pendiente. Esto sucede porque al regresar se consulta el estado de la transacción y este es "PENDIENTE". He explorado distintas soluciones y estará hecho en la siguiente etapa ---> Al consultar, el estado quedará como PENDIENTE porque es de hecho un estado válido en esa etapa de la transacción.
 
 #### Fortalezas de mi App
-En el panel de Admin posee un gráfico ilustrativo para comparar las transacciones por monto entre 7 y 30 días, así como las disputas. Es realmente útil para un usuario administrador, pues puede visualizar mejor el procesamiento de los datos.
+En el panel de Admin posee un gráfico ilustrativo para comparar las transacciones por monto entre 7 y 30 días, así como las transacciones rechazadas. Es realmente útil para un usuario administrador, pues puede visualizar mejor el procesamiento de los datos.
 
 El usuario puede realizar una disputa apenas el pago retorne como exitoso. Si bien no tenemos un botón de arrepentimiento, esto es lo más cercano porque, una vez iniciada una disputa, aparece en el panel de disputas del administrador.
 
