@@ -134,10 +134,13 @@ export default function PagoExitosoClient() {
             try {
               const userId = sessionStorage.getItem('payment-userid') ?? undefined
               const { getTrackingUrl } = await import('@/lib/actions/tracking')
-              const url = await getTrackingUrl(orderId, userId)
-              window.location.href = url
+              const url = new URL(await getTrackingUrl(orderId, userId))
+              url.searchParams.set('theme', resolved)
+              window.location.href = url.toString()
             } catch {
-              window.location.href = `${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}`
+              const url = new URL(`${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}`)
+              url.searchParams.set('theme', resolved)
+              window.location.href = url.toString()
             }
           }}
           className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors"
