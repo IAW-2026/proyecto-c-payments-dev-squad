@@ -128,27 +128,6 @@ export default function PagoExitosoClient() {
         <a href={`https://zapasya.vercel.app/order-confirmation/${orderId ?? ''}?theme=${resolved}`} className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors" style={{ backgroundColor: 'var(--color-success)', color: 'var(--color-on-primary)' }}>
           Ver orden de compra confirmada
         </a>
-        <button
-          onClick={async () => {
-            if (!orderId) return
-            try {
-              const userId = sessionStorage.getItem('payment-userid') ?? undefined
-              const { getTrackingUrl } = await import('@/lib/actions/tracking')
-              const url = new URL(await getTrackingUrl(orderId, userId))
-              url.searchParams.set('theme', resolved)
-              window.location.href = url.toString()
-            } catch {
-              const url = new URL(`${process.env.NEXT_PUBLIC_SHIPPING_APP_URL}/dashboard/shipments/${orderId}`)
-              url.searchParams.set('theme', resolved)
-              window.location.href = url.toString()
-            }
-          }}
-          className="px-4 sm:px-6 py-2 sm:py-2.5 rounded-lg font-medium text-sm sm:text-base transition-colors"
-          style={{ backgroundColor: 'var(--color-info)', color: 'white' }}
-        >
-          Ver mi envío
-        </button>
-
           {!disputaOk && pagoId && (
             <button
               onClick={() => setModal(true)}

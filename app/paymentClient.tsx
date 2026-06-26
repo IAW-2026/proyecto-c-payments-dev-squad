@@ -177,9 +177,8 @@ useEffect(() => {
         <div className="mb-4 sm:mb-6">
           <button
             onClick={() => {
-              const ref = sessionStorage.getItem('payment-referrer')
               const base = process.env.NEXT_PUBLIC_BUYER_APP_URL ?? 'https://zapasya.vercel.app'
-              const dest = ref ? new URL(ref) : new URL(`${base}/checkout`)
+              const dest = new URL(`${base}/checkout`)
               dest.searchParams.set('theme', resolved)
               window.location.href = dest.toString()
             }}
