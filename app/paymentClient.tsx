@@ -169,12 +169,13 @@ useEffect(() => {
           <button
             onClick={() => {
               const ref = document.referrer
-              if (ref && !ref.startsWith(window.location.origin)) {
-                const sep = ref.includes('?') ? '&' : '?'
-                window.location.href = `${ref}${sep}theme=${resolved}`
-              } else {
-                router.back()
-              }
+              const token = sessionStorage.getItem('payment-token')
+              const dest = ref && !ref.startsWith(window.location.origin)
+                ? new URL(ref)
+                : new URL(process.env.NEXT_PUBLIC_BUYER_APP_URL ?? 'https://zapasya.vercel.app')
+              if (token) dest.searchParams.set('token', token)
+              dest.searchParams.set('theme', resolved)
+              window.location.href = dest.toString()
             }}
             className="flex items-center justify-center gap-1 sm:gap-2 rounded-lg sm:rounded-xl font-semibold text-xs sm:text-sm transition-all btn-secondary"
             style={{
