@@ -24,21 +24,26 @@ export default function DisputasClient() {
   const [loading, setLoading] = useState(true)
 
   function cargar() {
-    fetch('/api/admin/stats')
+    fetch(`/api/admin/stats?t=${Date.now()}`)
       .then(r => r.json())
-      .then(d => { setData(d.disputas); setLoading(false) })
+      .then(d => { console.log('[disputas] datos recibidos:', d.disputas); setData(d.disputas); setLoading(false) })
       .catch(() => setLoading(false))
   }
 
   useEffect(() => { cargar() }, [])
 
   async function cambiarEstado(id: string, estado: string) {
-    await fetch(`/api/disputes/${id}`, {
+    const res = await fetch(`/api/disputes/${id}`, {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
       body:    JSON.stringify({ estado }),
     })
-    cargar()
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}))
+      console.error('[disputas] error al cambiar estado:', res.status, err)
+      return
+    }
+    setData(prev => prev.map(d => d.id === id ? { ...d, estado: estado as Disputa['estado'] } : d))
   }
 
   const abiertas  = data.filter(d => d.estado === 'ABIERTA').length
