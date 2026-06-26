@@ -33,6 +33,7 @@ export default function DisputasClient() {
   useEffect(() => { cargar() }, [])
 
   async function cambiarEstado(id: string, estado: string) {
+    console.log('[disputas] cambiarEstado llamado:', id, estado)
     const res = await fetch(`/api/disputes/${id}`, {
       method:  'PATCH',
       headers: { 'Content-Type': 'application/json' },
