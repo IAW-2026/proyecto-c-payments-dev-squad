@@ -1,0 +1,8 @@
+node_modules
+.next
+/lib/generated/prisma
+.env
+.env.local
+
+# clerk configuration (can include secrets)
+/.clerk/
